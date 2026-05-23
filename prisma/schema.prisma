@@ -1,0 +1,241 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LeadStatus {
+  hot
+  warm
+  cold
+  complaint
+  deal
+  lost
+}
+
+enum ConversationStatus {
+  open
+  closed
+  rate_limited
+}
+
+enum MessageDirection {
+  incoming
+  outgoing
+}
+
+enum OrderStatus {
+  draft
+  confirmed
+  waiting_payment
+  paid
+  cancelled
+  completed
+}
+
+enum FollowUpStatus {
+  pending
+  sent
+  cancelled
+}
+
+enum MessageSendStatus {
+  pending
+  sent
+  failed
+  blocked
+}
+
+model Business {
+  id                    String   @id @default(cuid())
+  name                  String
+  ownerName             String
+  phone                 String
+  fonnteToken           String?
+  email                 String   @unique
+  passwordHash          String
+  dailyMessageLimit     Int      @default(500)
+  perCustomerDailyLimit Int      @default(20)
+  replyCooldownSeconds  Int      @default(3)
+  inboundOnlyMode       Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  customers       Customer[]
+  conversations   Conversation[]
+  messages        Message[]
+  messageSendLogs MessageSendLog[]
+  products        Product[]
+  orders          Order[]
+  followUps       FollowUp[]
+  webhookEvents   WebhookEvent[]
+}
+
+model Customer {
+  id                 String     @id @default(cuid())
+  businessId         String
+  name               String?
+  phone              String
+  leadStatus         LeadStatus @default(cold)
+  tags               String[]   @default([])
+  optIn              Boolean    @default(true)
+  spamSuspected      Boolean    @default(false)
+  spamReason         String?
+  lastIncomingAt     DateTime?
+  lastOutgoingAt     DateTime?
+  outgoingCountToday Int        @default(0)
+  outgoingCountDate  DateTime?
+  lastMessageAt      DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  business        Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  conversations   Conversation[]
+  messages        Message[]
+  messageSendLogs MessageSendLog[]
+  orders          Order[]
+  followUps       FollowUp[]
+
+  @@unique([businessId, phone])
+  @@index([businessId, leadStatus])
+  @@index([businessId, lastMessageAt])
+}
+
+model Conversation {
+  id            String             @id @default(cuid())
+  businessId    String
+  customerId    String
+  status        ConversationStatus @default(open)
+  summary       String?
+  lastIntent    String?
+  lastMessageAt DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  business        Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer        Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  messages        Message[]
+  messageSendLogs MessageSendLog[]
+  orders          Order[]
+  followUps       FollowUp[]
+
+  @@index([businessId, status])
+  @@index([customerId, status])
+  @@index([businessId, lastMessageAt])
+}
+
+model Message {
+  id             String           @id @default(cuid())
+  businessId     String
+  customerId     String
+  conversationId String
+  direction      MessageDirection
+  message        String
+  rawPayload     Json?
+  fonnteInboxId  String?
+  aiProcessed    Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+
+  business     Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, createdAt])
+  @@index([conversationId, createdAt])
+  @@index([customerId, createdAt])
+}
+
+model MessageSendLog {
+  id             String            @id @default(cuid())
+  businessId     String
+  customerId     String
+  conversationId String?
+  message        String
+  status         MessageSendStatus @default(pending)
+  blockedReason  String?
+  fonnteResponse Json?
+  createdAt      DateTime          @default(now())
+
+  business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+
+  @@index([businessId, status, createdAt])
+  @@index([customerId, createdAt])
+  @@index([conversationId, createdAt])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  businessId  String
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(12, 2)
+  stock       Int      @default(0)
+  category    String?
+  keywords    String[] @default([])
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, isActive])
+  @@index([businessId, category])
+}
+
+model Order {
+  id             String      @id @default(cuid())
+  businessId     String
+  customerId     String
+  conversationId String?
+  status         OrderStatus @default(draft)
+  items          Json
+  totalEstimate  Decimal?    @db.Decimal(12, 2)
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+
+  @@index([businessId, status])
+  @@index([customerId])
+  @@index([conversationId])
+}
+
+model FollowUp {
+  id             String         @id @default(cuid())
+  businessId     String
+  customerId     String
+  conversationId String?
+  message        String
+  scheduledAt    DateTime
+  status         FollowUpStatus @default(pending)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+
+  @@index([businessId, status])
+  @@index([scheduledAt])
+}
+
+model WebhookEvent {
+  id         String   @id @default(cuid())
+  businessId String
+  payload    Json
+  source     String   @default("fonnte")
+  createdAt  DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, createdAt])
+}
