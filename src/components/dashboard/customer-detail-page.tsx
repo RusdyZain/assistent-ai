@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { LeadStatusBadge } from "@/components/dashboard/lead-status-badge";
@@ -49,9 +50,12 @@ interface CustomerDetail {
 }
 
 export function CustomerDetailPageClient({ customerId }: { customerId: string }) {
+  const router = useRouter();
   const [detail, setDetail] = useState<CustomerDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [clearingChat, setClearingChat] = useState(false);
+  const [deletingCustomer, setDeletingCustomer] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -141,6 +145,69 @@ export function CustomerDetailPageClient({ customerId }: { customerId: string })
       setError(saveError instanceof Error ? saveError.message : "Gagal update customer");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleClearChat = async () => {
+    if (!detail) return;
+
+    const approved = window.confirm(
+      "Hapus semua isi chat customer ini? Riwayat pesan akan dihapus permanen.",
+    );
+    if (!approved) return;
+
+    setClearingChat(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await fetch(`/api/customers/${detail.id}?action=clear_chat`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Gagal menghapus isi chat customer");
+      }
+
+      setSuccess(`Isi chat customer berhasil dihapus (${data.deletedMessages ?? 0} pesan).`);
+      await loadDetail();
+    } catch (clearError) {
+      setError(clearError instanceof Error ? clearError.message : "Gagal menghapus isi chat customer");
+    } finally {
+      setClearingChat(false);
+    }
+  };
+
+  const handleDeleteCustomer = async () => {
+    if (!detail) return;
+
+    const approved = window.confirm(
+      "Hapus customer ini beserta seluruh riwayat chat/order/follow-up terkait? Tindakan ini permanen.",
+    );
+    if (!approved) return;
+
+    setDeletingCustomer(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await fetch(`/api/customers/${detail.id}`, {
+        method: "DELETE",
+      });
+
+      const data = (await response.json().catch(() => null)) as { error?: string } | null;
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Gagal menghapus customer");
+      }
+
+      router.replace("/dashboard/customers");
+      router.refresh();
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "Gagal menghapus customer");
+    } finally {
+      setDeletingCustomer(false);
     }
   };
 
@@ -239,8 +306,24 @@ export function CustomerDetailPageClient({ customerId }: { customerId: string })
                   </Button>
                 ) : null}
               </div>
-              <Button className="w-full" onClick={handleSave} disabled={saving}>
+              <Button className="w-full" onClick={handleSave} disabled={saving || clearingChat || deletingCustomer}>
                 {saving ? "Menyimpan..." : "Simpan Perubahan"}
+              </Button>
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={handleClearChat}
+                disabled={saving || clearingChat || deletingCustomer}
+              >
+                {clearingChat ? "Menghapus Isi Chat..." : "Hapus Isi Chat Customer"}
+              </Button>
+              <Button
+                className="w-full"
+                variant="destructive"
+                onClick={handleDeleteCustomer}
+                disabled={saving || clearingChat || deletingCustomer}
+              >
+                {deletingCustomer ? "Menghapus Customer..." : "Hapus Customer"}
               </Button>
             </CardContent>
           </Card>

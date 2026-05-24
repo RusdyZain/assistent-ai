@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
 
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -40,13 +40,9 @@ export function SettingsPageClient() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const webhookUrl = useMemo(() => {
-    if (typeof window !== "undefined") {
-      return `${window.location.origin}/api/webhooks/fonnte`;
-    }
-
-    return `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/webhooks/fonnte`;
-  }, []);
+  const [webhookUrl, setWebhookUrl] = useState(
+    `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/webhooks/fonnte`,
+  );
 
   const loadSettings = useCallback(async () => {
     setLoading(true);
@@ -80,6 +76,10 @@ export function SettingsPageClient() {
   useEffect(() => {
     void loadSettings();
   }, [loadSettings]);
+
+  useEffect(() => {
+    setWebhookUrl(`${window.location.origin}/api/webhooks/fonnte`);
+  }, []);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();

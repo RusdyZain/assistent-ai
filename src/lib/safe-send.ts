@@ -17,13 +17,33 @@ function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function resolveFonnteToken(dbToken: string | null | undefined) {
-  if (dbToken?.trim()) return dbToken.trim();
-
+function resolveEnvFonnteToken() {
   const envToken = process.env.FONNTE_TOKEN ?? process.env.SEED_FONNTE_TOKEN;
   if (envToken?.trim()) return envToken.trim();
 
   return null;
+}
+
+function resolveFonnteTokens(dbToken: string | null | undefined) {
+  const normalizedDbToken = dbToken?.trim() || null;
+  const envToken = resolveEnvFonnteToken();
+
+  if (normalizedDbToken) {
+    return {
+      primaryToken: normalizedDbToken,
+      fallbackToken: envToken && envToken !== normalizedDbToken ? envToken : null,
+    };
+  }
+
+  return {
+    primaryToken: envToken,
+    fallbackToken: null,
+  };
+}
+
+function isInvalidTokenFailure(reason?: string) {
+  if (!reason) return false;
+  return reason.toLowerCase().includes("invalid token");
 }
 
 async function withBusinessQueue<T>(businessId: string, task: () => Promise<T>): Promise<T> {
@@ -103,9 +123,9 @@ export async function safeSendWhatsAppMessage({
       },
     });
 
-    const fonnteToken = resolveFonnteToken(business.fonnteToken);
+    const { primaryToken, fallbackToken } = resolveFonnteTokens(business.fonnteToken);
 
-    if (!fonnteToken) {
+    if (!primaryToken) {
       await prisma.messageSendLog.update({
         where: { id: sendLog.id },
         data: {
@@ -177,12 +197,30 @@ export async function safeSendWhatsAppMessage({
       };
     }
 
-    const sendResult = await sendWhatsAppMessage({
-      token: fonnteToken,
+    let sendResult = await sendWhatsAppMessage({
+      token: primaryToken,
       target: normalizePhone(target),
       message,
       inboxId,
     });
+
+    if (!sendResult.ok && fallbackToken && isInvalidTokenFailure(sendResult.error)) {
+      const fallbackSendResult = await sendWhatsAppMessage({
+        token: fallbackToken,
+        target: normalizePhone(target),
+        message,
+        inboxId,
+      });
+
+      sendResult = fallbackSendResult;
+
+      if (fallbackSendResult.ok && business.fonnteToken?.trim() !== fallbackToken) {
+        await prisma.business.update({
+          where: { id: businessId },
+          data: { fonnteToken: fallbackToken },
+        });
+      }
+    }
 
     if (!sendResult.ok) {
       await prisma.messageSendLog.update({

@@ -2,6 +2,24 @@ import { FonnteSendParams, FonnteSendResult } from "@/types/sales";
 
 const FONNTE_SEND_URL = "https://api.fonnte.com/send";
 
+function parseFonnteFailure(payload: unknown) {
+  if (!payload || typeof payload !== "object") return null;
+
+  const data = payload as Record<string, unknown>;
+  const statusField = data.status ?? data.Status;
+
+  if (statusField === false) {
+    const reason =
+      (typeof data.reason === "string" && data.reason.trim()) ||
+      (typeof data.detail === "string" && data.detail.trim()) ||
+      "Fonnte API mengembalikan status false";
+
+    return reason;
+  }
+
+  return null;
+}
+
 export async function sendWhatsAppMessage({
   token,
   target,
@@ -35,6 +53,16 @@ export async function sendWhatsAppMessage({
       payload = JSON.parse(text);
     } catch {
       payload = { raw: text };
+    }
+
+    const payloadFailureReason = parseFonnteFailure(payload);
+    if (payloadFailureReason) {
+      return {
+        ok: false,
+        status: response.status,
+        payload,
+        error: payloadFailureReason,
+      };
     }
 
     if (!response.ok) {

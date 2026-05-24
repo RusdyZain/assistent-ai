@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { LeadStatusBadge } from "@/components/dashboard/lead-status-badge";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
@@ -90,6 +90,13 @@ interface ConversationDetail {
   };
 }
 
+interface LoadOptions {
+  background?: boolean;
+}
+
+const LIST_POLL_INTERVAL_MS = 7000;
+const DETAIL_POLL_INTERVAL_MS = 3000;
+
 export function InboxPageClient() {
   const [conversations, setConversations] = useState<ConversationCard[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -100,8 +107,12 @@ export function InboxPageClient() {
   const [loadingConversations, setLoadingConversations] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [clearingChat, setClearingChat] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
+  const selectedIdRef = useRef<string | null>(null);
+  const latestMessageAnchorRef = useRef<HTMLDivElement | null>(null);
+  const latestMessageId = detail?.messages[detail.messages.length - 1]?.id ?? null;
 
   const listQuery = useMemo(() => {
     const params = new URLSearchParams();
@@ -110,9 +121,11 @@ export function InboxPageClient() {
     return params.toString();
   }, [search, leadStatus]);
 
-  const loadConversations = useCallback(async () => {
-    setLoadingConversations(true);
-    setError(null);
+  const loadConversations = useCallback(async ({ background = false }: LoadOptions = {}) => {
+    if (!background) {
+      setLoadingConversations(true);
+      setError(null);
+    }
 
     try {
       const response = await fetch(`/api/conversations${listQuery ? `?${listQuery}` : ""}`, {
@@ -134,49 +147,74 @@ export function InboxPageClient() {
         setSelectedId(data.data?.[0]?.id ?? null);
       }
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Gagal memuat inbox");
+      if (!background) {
+        setError(loadError instanceof Error ? loadError.message : "Gagal memuat inbox");
+      }
     } finally {
-      setLoadingConversations(false);
+      if (!background) {
+        setLoadingConversations(false);
+      }
     }
   }, [listQuery, selectedId]);
 
-  const loadDetail = useCallback(async (conversationId: string) => {
-    setLoadingDetail(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/conversations/${conversationId}`, {
-        cache: "no-store",
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error ?? "Gagal memuat detail conversation");
+  const loadDetail = useCallback(
+    async (conversationId: string, { background = false }: LoadOptions = {}) => {
+      if (!background) {
+        setLoadingDetail(true);
+        setError(null);
       }
 
-      const nextDetail: ConversationDetail = {
-        ...data.data,
-        sendGuard: data.sendGuard,
-        safety: data.safety,
-      };
+      try {
+        const response = await fetch(`/api/conversations/${conversationId}`, {
+          cache: "no-store",
+        });
+        const data = await response.json();
 
-      setDetail(nextDetail);
+        if (!response.ok) {
+          throw new Error(data.error ?? "Gagal memuat detail conversation");
+        }
 
-      if (nextDetail.customer.spamSuspected || nextDetail.status === "rate_limited") {
-        setSuggestedReply("");
-      } else if (!suggestedReply.trim()) {
-        setSuggestedReply(
-          nextDetail.summary
-            ? `Terima kasih, kami catat: ${nextDetail.summary}`
-            : "Terima kasih sudah menghubungi kami. Boleh info kebutuhan Anda agar kami bantu?",
-        );
+        const nextDetail: ConversationDetail = {
+          ...data.data,
+          sendGuard: data.sendGuard,
+          safety: data.safety,
+        };
+
+        if (selectedIdRef.current !== conversationId) {
+          return;
+        }
+
+        setDetail(nextDetail);
+
+        setSuggestedReply((currentReply) => {
+          if (nextDetail.customer.spamSuspected || nextDetail.status === "rate_limited") {
+            return "";
+          }
+
+          if (currentReply.trim()) {
+            return currentReply;
+          }
+
+          return nextDetail.summary
+            ? `Siap kak, aku catat ya: ${nextDetail.summary}`
+            : "Halo kak, makasih udah chat. Lagi butuh produk apa biar aku bantu cek?";
+        });
+      } catch (loadError) {
+        if (!background) {
+          setError(loadError instanceof Error ? loadError.message : "Gagal memuat detail conversation");
+        }
+      } finally {
+        if (!background) {
+          setLoadingDetail(false);
+        }
       }
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Gagal memuat detail conversation");
-    } finally {
-      setLoadingDetail(false);
-    }
-  }, [suggestedReply]);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
 
   useEffect(() => {
     void loadConversations();
@@ -199,6 +237,54 @@ export function InboxPageClient() {
 
     return () => clearTimeout(timer);
   }, [detail?.sendGuard.code, loadDetail, selectedId]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      void loadConversations({ background: true });
+    }, LIST_POLL_INTERVAL_MS);
+
+    return () => window.clearInterval(interval);
+  }, [loadConversations]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+
+    const interval = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      void loadDetail(selectedId, { background: true });
+    }, DETAIL_POLL_INTERVAL_MS);
+
+    return () => window.clearInterval(interval);
+  }, [loadDetail, selectedId]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
+
+      void loadConversations({ background: true });
+      if (selectedId) {
+        void loadDetail(selectedId, { background: true });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [loadConversations, loadDetail, selectedId]);
+
+  useEffect(() => {
+    if (!selectedId || !detail) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      latestMessageAnchorRef.current?.scrollIntoView({
+        block: "end",
+        inline: "nearest",
+        behavior: "auto",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [detail, latestMessageId, selectedId]);
 
   const handleSendReply = async () => {
     if (!detail || !suggestedReply.trim()) return;
@@ -332,6 +418,40 @@ export function InboxPageClient() {
       setError(createError instanceof Error ? createError.message : "Gagal membuat order");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleClearChat = async () => {
+    if (!detail) return;
+
+    const approved = window.confirm(
+      "Hapus semua isi chat di conversation ini? Ringkasan AI akan direset.",
+    );
+
+    if (!approved) return;
+
+    setClearingChat(true);
+    setError(null);
+    setWarning(null);
+
+    try {
+      const response = await fetch(`/api/conversations/${detail.id}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error ?? "Gagal menghapus isi chat");
+      }
+
+      setSuggestedReply("");
+      setWarning(`Isi chat berhasil dihapus (${data.deletedMessages ?? 0} pesan).`);
+      await loadDetail(detail.id);
+      await loadConversations();
+    } catch (clearError) {
+      setError(clearError instanceof Error ? clearError.message : "Gagal menghapus isi chat");
+    } finally {
+      setClearingChat(false);
     }
   };
 
@@ -484,14 +604,17 @@ export function InboxPageClient() {
                   </div>
 
                   <div className="space-y-3">
-                    {detail.messages.map((message) => (
+                    {detail.messages.map((message, index) => {
+                      const isLatestMessage = index === detail.messages.length - 1;
+
+                      return (
                       <div
                         key={message.id}
                         className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
                           message.direction === "incoming"
                             ? "mr-auto bg-zinc-100 text-zinc-900"
                             : "ml-auto bg-emerald-600 text-white"
-                        }`}
+                        } ${isLatestMessage ? "mb-4" : ""}`}
                       >
                         <p>{message.message}</p>
                         <p
@@ -502,7 +625,9 @@ export function InboxPageClient() {
                           {formatDateTime(message.createdAt)}
                         </p>
                       </div>
-                    ))}
+                      );
+                    })}
+                    <div ref={latestMessageAnchorRef} className="h-1" />
                   </div>
                 </ScrollArea>
               )}
@@ -538,18 +663,37 @@ export function InboxPageClient() {
               <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                 <Button
                   onClick={handleSendReply}
-                  disabled={!detail || submitting || !suggestedReply.trim() || sendBlocked}
+                  disabled={!detail || submitting || clearingChat || !suggestedReply.trim() || sendBlocked}
                 >
                   Send Reply
                 </Button>
-                <Button variant="secondary" onClick={handleRegenerate} disabled={!detail || submitting}>
+                <Button
+                  variant="secondary"
+                  onClick={handleRegenerate}
+                  disabled={!detail || submitting || clearingChat}
+                >
                   Regenerate Draft
                 </Button>
-                <Button variant="outline" onClick={handleCreateFollowUp} disabled={!detail || submitting}>
+                <Button
+                  variant="outline"
+                  onClick={handleCreateFollowUp}
+                  disabled={!detail || submitting || clearingChat}
+                >
                   Create Follow Up
                 </Button>
-                <Button variant="outline" onClick={handleCreateOrder} disabled={!detail || submitting}>
+                <Button
+                  variant="outline"
+                  onClick={handleCreateOrder}
+                  disabled={!detail || submitting || clearingChat}
+                >
                   Create Order
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleClearChat}
+                  disabled={!detail || submitting || clearingChat}
+                >
+                  {clearingChat ? "Menghapus..." : "Hapus Isi Chat"}
                 </Button>
               </div>
 

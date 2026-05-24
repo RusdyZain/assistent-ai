@@ -109,3 +109,136 @@ export async function PATCH(
     return NextResponse.json({ error: "Gagal update customer" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  try {
+    const business = await requireBusiness();
+    const params = await context.params;
+    const { searchParams } = new URL(request.url);
+    const action = searchParams.get("action");
+
+    const customer = await prisma.customer.findFirst({
+      where: {
+        id: params.id,
+        businessId: business.id,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!customer) {
+      return NextResponse.json({ error: "Customer tidak ditemukan" }, { status: 404 });
+    }
+
+    if (action === "clear_chat") {
+      const result = await prisma.$transaction(async (tx) => {
+        const conversations = await tx.conversation.findMany({
+          where: {
+            businessId: business.id,
+            customerId: customer.id,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        const conversationIds = conversations.map((item) => item.id);
+
+        if (!conversationIds.length) {
+          await tx.customer.update({
+            where: {
+              id: customer.id,
+            },
+            data: {
+              lastMessageAt: null,
+              lastIncomingAt: null,
+              lastOutgoingAt: null,
+            },
+          });
+
+          return {
+            clearedConversations: 0,
+            deletedMessages: 0,
+            deletedSendLogs: 0,
+          };
+        }
+
+        const deletedMessages = await tx.message.deleteMany({
+          where: {
+            businessId: business.id,
+            customerId: customer.id,
+            conversationId: {
+              in: conversationIds,
+            },
+          },
+        });
+
+        const deletedSendLogs = await tx.messageSendLog.deleteMany({
+          where: {
+            businessId: business.id,
+            customerId: customer.id,
+          },
+        });
+
+        await tx.conversation.updateMany({
+          where: {
+            id: {
+              in: conversationIds,
+            },
+          },
+          data: {
+            summary: null,
+            lastIntent: null,
+            lastMessageAt: null,
+            status: "open",
+          },
+        });
+
+        await tx.customer.update({
+          where: {
+            id: customer.id,
+          },
+          data: {
+            lastMessageAt: null,
+            lastIncomingAt: null,
+            lastOutgoingAt: null,
+          },
+        });
+
+        return {
+          clearedConversations: conversationIds.length,
+          deletedMessages: deletedMessages.count,
+          deletedSendLogs: deletedSendLogs.count,
+        };
+      });
+
+      return NextResponse.json({
+        ok: true,
+        action: "clear_chat",
+        ...result,
+      });
+    }
+
+    await prisma.customer.delete({
+      where: {
+        id: customer.id,
+      },
+    });
+
+    return NextResponse.json({
+      ok: true,
+      action: "delete_customer",
+      deletedCustomerId: customer.id,
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message === "UNAUTHORIZED") {
+      return unauthorizedResponse();
+    }
+
+    return NextResponse.json({ error: "Gagal menghapus data customer" }, { status: 500 });
+  }
+}
