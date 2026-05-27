@@ -15,9 +15,12 @@ Integrasi WhatsApp menggunakan **Fonnte API**.
 ## Fitur MVP
 - Login admin sederhana (single account, siap dikembangkan multi-business)
 - Dashboard modul:
+  - Setup
   - Inbox
   - Customers
   - Products
+  - Templates
+  - Knowledge Base
   - Orders
   - Follow Ups
   - Settings
@@ -28,6 +31,22 @@ Integrasi WhatsApp menggunakan **Fonnte API**.
 - Draft order otomatis dari sinyal order di percakapan
 - Follow-up reminder manual (tidak auto-send)
 - Kirim pesan WA manual lewat Fonnte (`/api/messages/send`) dengan safe layer
+
+## Business Setup Before AI Usage
+Sebelum AI dipakai untuk menganalisis chat dan menyusun draft balasan/order/follow-up, bisnis wajib menyelesaikan setup di `/dashboard/setup`:
+- Profil bisnis (kategori, deskripsi, area layanan, jam operasional, tone brand)
+- Aturan penjualan (metode pembayaran, DP, kebijakan refund/reschedule/shipping, instruksi pembayaran, alur order)
+- Katalog produk/layanan aktif
+- Template balasan
+- Knowledge base (alamat, pembayaran, booking, promo, FAQ, dll.)
+- Aturan follow-up
+- Koneksi Fonnte
+
+Tanpa setup yang lengkap, AI berisiko memberikan saran yang tidak akurat. Setup lengkap membantu AI:
+- Tidak mengarang harga/promo/kebijakan
+- Menjawab sesuai katalog produk/layanan aktual
+- Menyesuaikan gaya bahasa dengan brand tone
+- Menyusun draft order dan follow-up plan yang lebih presisi
 
 ## WhatsApp Safety Mitigation
 Sistem ini **tidak menjamin nomor WhatsApp pasti aman dari banned**, namun mengurangi perilaku berisiko tinggi:
@@ -62,8 +81,11 @@ src/
       webhooks/fonnte/
       messages/send/
       ai/analyze/
+      setup/
       conversations/
       products/
+      templates/
+      knowledge-base/
       customers/
       orders/
       follow-ups/
@@ -217,6 +239,13 @@ Model tambahan safety/debug:
 - `GET /api/conversations/[id]`
 - `GET/POST /api/products`
 - `PATCH/DELETE /api/products/[id]`
+- `GET/POST /api/templates`
+- `PATCH/DELETE /api/templates/[id]`
+- `GET/POST /api/knowledge-base`
+- `PATCH/DELETE /api/knowledge-base/[id]`
+- `GET/PATCH /api/setup`
+- `POST /api/setup/complete`
+- `POST /api/setup/fonnte-test`
 - `GET /api/customers`
 - `GET/PATCH /api/customers/[id]`
 - `GET/POST /api/orders`

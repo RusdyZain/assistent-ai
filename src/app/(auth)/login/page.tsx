@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { ArrowLeft, Lock, Mail } from "lucide-react";
@@ -59,6 +60,7 @@ export default function LoginPage() {
             Kembali ke landing page
           </Link>
           <div>
+            <Image src="/logo.png" alt="WAI Sales Assistant" width={180} height={60} className="mb-3 h-8 w-auto" priority />
             <CardTitle className="text-2xl tracking-tight">Login WAI Sales Assistant</CardTitle>
             <CardDescription className="mt-1">
               Masuk ke dashboard inbox WhatsApp bisnis Anda.

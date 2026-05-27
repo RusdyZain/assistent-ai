@@ -121,6 +121,12 @@ export async function GET(
         dailyMessageLimit: business.dailyMessageLimit,
         businessOutgoingToday,
         businessLimitReached: businessOutgoingToday >= business.dailyMessageLimit,
+        warmLeadFollowUpHours: business.warmLeadFollowUpHours,
+        hotLeadFollowUpHours: business.hotLeadFollowUpHours,
+        closingPriorityFollowUpHours: business.closingPriorityFollowUpHours,
+        waitingPaymentFollowUpHours: business.waitingPaymentFollowUpHours,
+        maxFollowUpCount: business.maxFollowUpCount,
+        markLostAfterDays: business.markLostAfterDays,
       },
     });
   } catch (error) {

@@ -49,29 +49,92 @@ enum MessageSendStatus {
   blocked
 }
 
-model Business {
-  id                    String   @id @default(cuid())
-  name                  String
-  ownerName             String
-  phone                 String
-  fonnteToken           String?
-  email                 String   @unique
-  passwordHash          String
-  dailyMessageLimit     Int      @default(500)
-  perCustomerDailyLimit Int      @default(20)
-  replyCooldownSeconds  Int      @default(3)
-  inboundOnlyMode       Boolean  @default(true)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+enum ProductType {
+  product
+  service
+}
 
-  customers       Customer[]
-  conversations   Conversation[]
-  messages        Message[]
-  messageSendLogs MessageSendLog[]
-  products        Product[]
-  orders          Order[]
-  followUps       FollowUp[]
-  webhookEvents   WebhookEvent[]
+enum ReplyTemplateType {
+  greeting
+  ask_price
+  ask_stock
+  ask_location
+  ask_booking
+  ask_payment
+  order_recap
+  follow_up_warm
+  follow_up_hot
+  payment_reminder
+  complaint_response
+  closing_message
+}
+
+enum KnowledgeCategory {
+  address
+  payment
+  booking
+  shipping
+  refund
+  reschedule
+  promo
+  faq
+  other
+}
+
+model Business {
+  id                           String   @id @default(cuid())
+  name                         String
+  ownerName                    String
+  phone                        String
+  businessCategory             String?
+  businessDescription          String?
+  businessLocation             String?
+  serviceArea                  String?
+  operatingHours               String?
+  whatsappNumber               String?
+  replyLanguage                String   @default("Indonesia")
+  brandTone                    String   @default("friendly")
+  acceptsCOD                   Boolean  @default(false)
+  acceptsTransfer              Boolean  @default(true)
+  acceptsQRIS                  Boolean  @default(false)
+  requiresDownPayment          Boolean  @default(false)
+  downPaymentAmount            Decimal? @db.Decimal(12, 2)
+  downPaymentPercentage        Int?
+  allowNegotiation             Boolean  @default(false)
+  minimumOrder                 Decimal? @db.Decimal(12, 2)
+  refundPolicy                 String?
+  reschedulePolicy             String?
+  shippingPolicy               String?
+  paymentInstructions          String?
+  orderProcess                 String?
+  warmLeadFollowUpHours        Int      @default(24)
+  hotLeadFollowUpHours         Int      @default(2)
+  closingPriorityFollowUpHours Int      @default(1)
+  waitingPaymentFollowUpHours  Int      @default(6)
+  maxFollowUpCount             Int      @default(2)
+  markLostAfterDays            Int      @default(3)
+  setupCompleted               Boolean  @default(false)
+  setupStep                    Int      @default(1)
+  fonnteToken                  String?
+  email                        String   @unique
+  passwordHash                 String
+  dailyMessageLimit            Int      @default(500)
+  perCustomerDailyLimit        Int      @default(20)
+  replyCooldownSeconds         Int      @default(3)
+  inboundOnlyMode              Boolean  @default(true)
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+
+  customers          Customer[]
+  conversations      Conversation[]
+  messages           Message[]
+  messageSendLogs    MessageSendLog[]
+  products           Product[]
+  replyTemplates     ReplyTemplate[]
+  knowledgeBaseItems KnowledgeBaseItem[]
+  orders             Order[]
+  followUps          FollowUp[]
+  webhookEvents      WebhookEvent[]
 }
 
 model Customer {
@@ -169,23 +232,66 @@ model MessageSendLog {
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  businessId  String
-  name        String
-  description String?
-  price       Decimal  @db.Decimal(12, 2)
-  stock       Int      @default(0)
-  category    String?
-  keywords    String[] @default([])
-  imageUrl    String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String      @id @default(cuid())
+  businessId     String
+  name           String
+  type           ProductType @default(product)
+  description    String?
+  price          Decimal     @db.Decimal(12, 2)
+  promoPrice     Decimal?    @db.Decimal(12, 2)
+  benefits       String?
+  suitableFor    String?
+  stock          Int         @default(0)
+  stockStatus    String?
+  availability   String?
+  duration       String?
+  minimumOrder   Int?
+  processingTime String?
+  deliveryInfo   String?
+  category       String?
+  keywords       String[]    @default([])
+  faq            Json?
+  imageUrl       String?
+  tags           String[]    @default([])
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
 
   @@index([businessId, isActive])
   @@index([businessId, category])
+}
+
+model ReplyTemplate {
+  id         String            @id @default(cuid())
+  businessId String
+  type       ReplyTemplateType
+  title      String
+  content    String
+  isActive   Boolean           @default(true)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, type])
+  @@index([businessId, isActive])
+}
+
+model KnowledgeBaseItem {
+  id         String            @id @default(cuid())
+  businessId String
+  title      String
+  category   KnowledgeCategory
+  content    String
+  isActive   Boolean           @default(true)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, category, isActive])
 }
 
 model Order {

@@ -67,6 +67,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Customer tidak ditemukan" }, { status: 404 });
     }
 
+    const existingFollowUpCount = await prisma.followUp.count({
+      where: {
+        businessId: business.id,
+        customerId: parsed.data.customerId,
+        conversationId: parsed.data.conversationId || null,
+        status: {
+          in: ["pending", "sent"],
+        },
+      },
+    });
+
+    if (existingFollowUpCount >= business.maxFollowUpCount) {
+      return NextResponse.json(
+        { error: `Maksimal follow-up (${business.maxFollowUpCount}) untuk lead ini sudah tercapai.` },
+        { status: 400 },
+      );
+    }
+
     const followUp = await prisma.followUp.create({
       data: {
         businessId: business.id,

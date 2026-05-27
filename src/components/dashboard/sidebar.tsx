@@ -1,12 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  BookOpenText,
   Boxes,
   ClipboardList,
   Inbox,
+  LayoutList,
   LogOut,
+  MessageSquareText,
   Settings,
   ShoppingCart,
   Users,
@@ -17,9 +21,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const navItems = [
+  { href: "/dashboard/setup", label: "Setup", icon: LayoutList },
   { href: "/dashboard/inbox", label: "Inbox", icon: Inbox },
   { href: "/dashboard/customers", label: "Customers", icon: Users },
   { href: "/dashboard/products", label: "Products", icon: Boxes },
+  { href: "/dashboard/templates", label: "Templates", icon: MessageSquareText },
+  { href: "/dashboard/knowledge-base", label: "Knowledge Base", icon: BookOpenText },
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingCart },
   { href: "/dashboard/follow-ups", label: "Follow Ups", icon: ClipboardList },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
@@ -39,8 +46,15 @@ export function DashboardSidebar() {
 
   return (
     <aside className="w-full border-b border-zinc-200 bg-white/95 px-3 py-4 backdrop-blur md:h-screen md:w-72 md:border-b-0 md:border-r md:px-4">
-      <div className="mb-6 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3">
-        <div className="mb-2 inline-flex rounded-lg bg-emerald-600 px-2 py-1 text-xs font-semibold text-white">WAI</div>
+      <div className="mb-6 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3 flex-row">
+        <Image
+          src="/logo.png"
+          alt="WAI Sales Assistant"
+          width={180}
+          height={60}
+          className="mb-2 h-8 w-auto"
+          priority
+        />
         <div>
           <p className="text-sm font-semibold">WAI Sales Assistant</p>
           <p className="text-xs text-zinc-500">Dashboard UMKM</p>

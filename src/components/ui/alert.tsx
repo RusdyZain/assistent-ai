@@ -1,31 +1,50 @@
+"use client";
+
 import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
+import { Alert as HeroAlert } from "@heroui/react";
 
 import { cn } from "@/lib/utils";
 
-const alertVariants = cva("relative w-full rounded-2xl border p-4", {
-  variants: {
-    variant: {
-      default: "border-emerald-200 bg-emerald-50/60 text-emerald-900",
-      warning: "border-amber-300 bg-amber-50 text-amber-900",
-      destructive: "border-red-300 bg-red-50 text-red-900",
-    },
-  },
-  defaultVariants: {
-    variant: "default",
-  },
-});
+type AlertVariant = "default" | "warning" | "destructive";
 
-function Alert({ className, variant, ...props }: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
-  return <div role="alert" className={cn(alertVariants({ variant }), className)} {...props} />;
+const statusByVariant: Record<AlertVariant, "default" | "warning" | "danger"> = {
+  default: "default",
+  warning: "warning",
+  destructive: "danger",
+};
+
+function Alert({
+  className,
+  variant = "default",
+  ...props
+}: React.ComponentProps<"div"> & {
+  variant?: AlertVariant;
+}) {
+  return (
+    <HeroAlert.Root
+      status={statusByVariant[variant]}
+      className={cn("rounded-2xl", className)}
+      {...(props as React.ComponentProps<typeof HeroAlert.Root>)}
+    />
+  );
 }
 
-function AlertTitle({ className, ...props }: React.ComponentProps<"h5">) {
-  return <h5 className={cn("mb-1 font-medium leading-none", className)} {...props} />;
+function AlertTitle({ className, ...props }: React.ComponentProps<"p">) {
+  return (
+    <HeroAlert.Title
+      className={cn("font-medium leading-none", className)}
+      {...(props as React.ComponentProps<typeof HeroAlert.Title>)}
+    />
+  );
 }
 
-function AlertDescription({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("text-sm [&_p]:leading-relaxed", className)} {...props} />;
+function AlertDescription({ className, ...props }: React.ComponentProps<"span">) {
+  return (
+    <HeroAlert.Description
+      className={cn("text-sm [&_p]:leading-relaxed", className)}
+      {...(props as React.ComponentProps<typeof HeroAlert.Description>)}
+    />
+  );
 }
 
 export { Alert, AlertTitle, AlertDescription };

@@ -36,6 +36,9 @@ export async function GET() {
         dailyMessageLimit: business.dailyMessageLimit,
         businessOutgoingToday,
         businessLimitReached,
+        setupCompleted: business.setupCompleted,
+        setupStep: business.setupStep,
+        whatsappNumber: business.whatsappNumber ?? business.phone,
       },
     });
   } catch (error) {

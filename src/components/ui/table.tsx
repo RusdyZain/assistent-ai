@@ -1,3 +1,5 @@
+"use client";
+
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -27,9 +29,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
 }
 
 function TableHead({ className, ...props }: React.ComponentProps<"th">) {
-  return (
-    <th className={cn("h-10 px-2 text-left align-middle font-medium text-zinc-600", className)} {...props} />
-  );
+  return <th className={cn("h-10 px-2 text-left align-middle font-medium text-zinc-600", className)} {...props} />;
 }
 
 function TableCell({ className, ...props }: React.ComponentProps<"td">) {

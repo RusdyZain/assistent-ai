@@ -1,28 +1,49 @@
+"use client";
+
 import * as React from "react";
-import { cva, type VariantProps } from "class-variance-authority";
+import { Badge as HeroBadge } from "@heroui/react";
 
 import { cn } from "@/lib/utils";
 
-const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors",
+type BadgeVariant = "default" | "secondary" | "outline";
+
+const badgePreset: Record<
+  BadgeVariant,
   {
-    variants: {
-      variant: {
-        default: "border-transparent bg-emerald-600 text-white",
-        secondary: "border-transparent bg-zinc-100 text-zinc-700",
-        outline: "text-zinc-700",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  },
-);
+    color: "default" | "success";
+    variant: "primary" | "secondary" | "soft";
+  }
+> = {
+  default: { color: "success", variant: "primary" },
+  secondary: { color: "default", variant: "secondary" },
+  outline: { color: "default", variant: "soft" },
+};
 
-export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement>, VariantProps<typeof badgeVariants> {}
+const badgeClassByVariant: Record<BadgeVariant, string> = {
+  default: "",
+  secondary: "",
+  outline: "border",
+};
 
-function Badge({ className, variant, ...props }: BadgeProps) {
-  return <div className={cn(badgeVariants({ variant }), className)} {...props} />;
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
+  variant?: BadgeVariant;
+}
+
+function badgeVariants({ variant = "default" }: { variant?: BadgeVariant }) {
+  return badgeClassByVariant[variant];
+}
+
+function Badge({ className, variant = "default", ...props }: BadgeProps) {
+  const preset = badgePreset[variant];
+
+  return (
+    <HeroBadge.Root
+      color={preset.color}
+      variant={preset.variant}
+      className={cn(badgeVariants({ variant }), className)}
+      {...(props as React.ComponentProps<typeof HeroBadge.Root>)}
+    />
+  );
 }
 
 export { Badge, badgeVariants };

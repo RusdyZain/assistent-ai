@@ -16,6 +16,11 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "WAI Sales Assistant",
   description: "Turn WhatsApp into a smart sales workflow with AI summary, lead scoring, and follow-up control.",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

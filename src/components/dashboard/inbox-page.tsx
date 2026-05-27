@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmAlertDialog } from "@/components/ui/confirm-alert-dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -87,6 +88,12 @@ interface ConversationDetail {
     dailyMessageLimit: number;
     businessOutgoingToday: number;
     businessLimitReached: boolean;
+    warmLeadFollowUpHours: number;
+    hotLeadFollowUpHours: number;
+    closingPriorityFollowUpHours: number;
+    waitingPaymentFollowUpHours: number;
+    maxFollowUpCount: number;
+    markLostAfterDays: number;
   };
 }
 
@@ -108,8 +115,10 @@ export function InboxPageClient() {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [clearingChat, setClearingChat] = useState(false);
+  const [confirmClearChatOpen, setConfirmClearChatOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
+  const [setupIncomplete, setSetupIncomplete] = useState(false);
   const selectedIdRef = useRef<string | null>(null);
   const latestMessageAnchorRef = useRef<HTMLDivElement | null>(null);
   const latestMessageId = detail?.messages[detail.messages.length - 1]?.id ?? null;
@@ -219,6 +228,19 @@ export function InboxPageClient() {
   useEffect(() => {
     void loadConversations();
   }, [loadConversations]);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const response = await fetch("/api/setup", { cache: "no-store" });
+        const result = await response.json();
+        if (!response.ok) return;
+        setSetupIncomplete(!result.data?.setupCompleted);
+      } catch {
+        // no-op
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (selectedId) {
@@ -362,6 +384,15 @@ export function InboxPageClient() {
     setError(null);
 
     try {
+      const followUpHours =
+        detail.lastIntent === "payment_confirmation"
+          ? detail.safety.waitingPaymentFollowUpHours
+          : detail.customer.leadStatus === "deal"
+            ? detail.safety.closingPriorityFollowUpHours
+            : detail.customer.leadStatus === "hot"
+              ? detail.safety.hotLeadFollowUpHours
+              : detail.safety.warmLeadFollowUpHours;
+
       const response = await fetch("/api/follow-ups", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -371,7 +402,7 @@ export function InboxPageClient() {
           message:
             suggestedReply.trim() ||
             "Follow-up pelanggan: cek kelanjutan kebutuhan dan konfirmasi ketersediaan.",
-          scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          scheduledAt: new Date(Date.now() + followUpHours * 60 * 60 * 1000).toISOString(),
           status: "pending",
         }),
       });
@@ -423,12 +454,6 @@ export function InboxPageClient() {
 
   const handleClearChat = async () => {
     if (!detail) return;
-
-    const approved = window.confirm(
-      "Hapus semua isi chat di conversation ini? Ringkasan AI akan direset.",
-    );
-
-    if (!approved) return;
 
     setClearingChat(true);
     setError(null);
@@ -483,6 +508,15 @@ export function InboxPageClient() {
           <AlertTitle>Business daily message limit reached.</AlertTitle>
           <AlertDescription>
             Kuota harian bisnis sudah penuh. Pengiriman berikutnya akan tersedia besok.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {setupIncomplete ? (
+        <Alert variant="warning" className="mb-4">
+          <AlertTitle>Setup Required</AlertTitle>
+          <AlertDescription>
+            Complete business setup so AI can generate accurate replies.
           </AlertDescription>
         </Alert>
       ) : null}
@@ -690,7 +724,7 @@ export function InboxPageClient() {
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={handleClearChat}
+                  onClick={() => setConfirmClearChatOpen(true)}
                   disabled={!detail || submitting || clearingChat}
                 >
                   {clearingChat ? "Menghapus..." : "Hapus Isi Chat"}
@@ -705,6 +739,16 @@ export function InboxPageClient() {
           </Card>
         </div>
       </div>
+
+      <ConfirmAlertDialog
+        open={confirmClearChatOpen}
+        onOpenChange={setConfirmClearChatOpen}
+        title="Hapus isi chat conversation ini?"
+        description="Semua pesan dalam conversation ini akan dihapus dan ringkasan AI akan direset."
+        confirmLabel={clearingChat ? "Menghapus..." : "Ya, hapus chat"}
+        loading={clearingChat}
+        onConfirm={handleClearChat}
+      />
     </div>
   );
 }

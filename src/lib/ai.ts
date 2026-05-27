@@ -38,13 +38,71 @@ type AnalyzeConversationInput = {
   }>;
   products: Array<{
     name: string;
+    type: "product" | "service";
     description: string | null;
     price: string | number;
+    promoPrice: string | number | null;
+    benefits: string | null;
+    suitableFor: string | null;
     stock: number;
+    stockStatus: string | null;
+    availability: string | null;
+    duration: string | null;
+    minimumOrder: number | null;
+    processingTime: string | null;
+    deliveryInfo: string | null;
     category: string | null;
     keywords: string[];
+    faq: unknown;
+    tags: string[];
     isActive: boolean;
   }>;
+  businessProfile: {
+    businessName: string;
+    businessCategory: string | null;
+    businessDescription: string | null;
+    businessLocation: string | null;
+    serviceArea: string | null;
+    operatingHours: string | null;
+    whatsappNumber: string | null;
+    replyLanguage: string;
+    brandTone: string;
+  };
+  salesRules: {
+    acceptsCOD: boolean;
+    acceptsTransfer: boolean;
+    acceptsQRIS: boolean;
+    requiresDownPayment: boolean;
+    downPaymentAmount: number | null;
+    downPaymentPercentage: number | null;
+    allowNegotiation: boolean;
+    minimumOrder: number | null;
+    refundPolicy: string | null;
+    reschedulePolicy: string | null;
+    shippingPolicy: string | null;
+    paymentInstructions: string | null;
+    orderProcess: string | null;
+  };
+  replyTemplates: Array<{
+    type: string;
+    title: string;
+    content: string;
+    isActive: boolean;
+  }>;
+  knowledgeBase: Array<{
+    title: string;
+    category: string;
+    content: string;
+    isActive: boolean;
+  }>;
+  followUpRules: {
+    warmLeadFollowUpHours: number;
+    hotLeadFollowUpHours: number;
+    closingPriorityFollowUpHours: number;
+    waitingPaymentFollowUpHours: number;
+    maxFollowUpCount: number;
+    markLostAfterDays: number;
+  };
 };
 
 const FALLBACK_RESULT: AIAnalysisResult = {
@@ -73,33 +131,73 @@ function createPrompt(input: AnalyzeConversationInput) {
 
   const productContext = input.products.slice(0, 50).map((item) => ({
     name: item.name,
+    type: item.type,
+    description: item.description,
     price: Number(item.price),
+    promoPrice: item.promoPrice ? Number(item.promoPrice) : null,
+    benefits: item.benefits,
+    suitableFor: item.suitableFor,
     stock: item.stock,
+    stockStatus: item.stockStatus,
+    availability: item.availability,
+    duration: item.duration,
+    minimumOrder: item.minimumOrder,
+    processingTime: item.processingTime,
+    deliveryInfo: item.deliveryInfo,
     category: item.category,
     keywords: item.keywords,
+    faq: item.faq,
+    tags: item.tags,
     active: item.isActive,
   }));
+
+  const templateContext = input.replyTemplates
+    .filter((item) => item.isActive)
+    .slice(0, 20)
+    .map((item) => ({
+      type: item.type,
+      title: item.title,
+      content: item.content,
+    }));
+
+  const knowledgeContext = input.knowledgeBase
+    .filter((item) => item.isActive)
+    .slice(0, 50)
+    .map((item) => ({
+      title: item.title,
+      category: item.category,
+      content: item.content,
+    }));
 
   return {
     instruction: `Anda adalah AI asisten sales WhatsApp untuk bisnis Indonesia. Analisis percakapan WhatsApp dan hasilkan JSON valid saja tanpa markdown.
 Aturan:
 1) Jangan mengaku manusia.
-2) Balasan WA harus friendly, hangat, santai-profesional, dan tidak kaku.
+2) Gunakan brandTone bisnis sebagai gaya komunikasi utama, lalu sesuaikan dengan konteks customer.
 3) Prioritaskan gaya bahasa percakapan Indonesia sehari-hari (contoh: "kak", "boleh", "siap", "oke").
 4) Hindari bahasa terlalu formal/korporat seperti "terkait", "dengan hormat", "kami catat", "mohon informasinya", kecuali customer memang sangat formal.
 5) Balasan ideal 1-2 kalimat pendek, langsung ke inti, dan maksimal 1 pertanyaan lanjutan.
 6) Jika customer menulis singkat, jawab singkat juga; jika customer santai, ikut santai tetap sopan.
-7) Jangan janji stok/harga/diskon/pengiriman jika data produk tidak mendukung.
+7) DILARANG mengarang harga, promo, kebijakan, jam operasional, lokasi, atau aturan pembayaran. Jika data tidak ada, minta admin verifikasi.
 8) Jika informasi kurang, tanyakan hanya 1 pertanyaan terpenting.
 9) Tidak boleh auto kirim, hanya draft balasan.
 10) Jika ragu, sarankan admin verifikasi.
 11) Jangan pernah merekomendasikan pengiriman pesan berulang/agresif ke customer yang sama.
 12) Jika internalNotesOnly=true, buat catatan internal singkat dan kosongkan suggestedReply.
+13) Gunakan knowledge base sebagai sumber kebenaran untuk alamat, pembayaran, booking, pengiriman, refund, reschedule, promo, dan FAQ.
+14) Gunakan reply template yang cocok berdasarkan konteks pertanyaan customer bila tersedia.
+15) Saat membuat extractedOrder, gunakan hanya produk/layanan aktif dari katalog.
+16) Tulis balasan utama dalam bahasa sesuai replyLanguage bisnis.
 `,
     payload: {
       conversation: input.conversation,
       messages: latestMessages,
+      businessProfile: input.businessProfile,
+      salesRules: input.salesRules,
       products: productContext,
+      replyTemplates: templateContext,
+      knowledgeBase: knowledgeContext,
+      followUpRules: input.followUpRules,
       outputFormat: {
         intent:
           "order_inquiry | price_question | stock_question | shipping_question | complaint | payment_confirmation | general_question | unknown",

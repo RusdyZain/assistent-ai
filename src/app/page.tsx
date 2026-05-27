@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import {
   ArrowRight,
@@ -166,9 +167,7 @@ export default async function HomePage() {
       <header className="sticky top-0 z-50 border-b border-zinc-200/80 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-[72px] w-full max-w-6xl items-center justify-between px-4 md:px-6">
           <Link className="flex items-center gap-3" href="/">
-            <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-sm font-bold text-white">
-              WAI
-            </span>
+            <Image src="/logo.png" alt="WAI Sales Assistant" width={180} height={60} className="h-9 w-auto" priority />
             <div>
               <p className="text-sm font-semibold tracking-tight text-zinc-900">WAI Sales Assistant</p>
               <p className="text-xs text-zinc-500">WhatsApp AI Sales System</p>
@@ -511,6 +510,7 @@ export default async function HomePage() {
       <footer className="border-t border-zinc-200 bg-white">
         <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10 md:grid-cols-4 md:px-6">
           <div>
+            <Image src="/logo.png" alt="WAI Sales Assistant" width={180} height={60} className="mb-3 h-8 w-auto" />
             <p className="text-sm font-semibold text-zinc-900">WAI Sales Assistant</p>
             <p className="mt-2 text-sm text-zinc-600">Turn your business WhatsApp into a smart sales workflow.</p>
           </div>

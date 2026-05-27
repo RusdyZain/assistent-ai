@@ -1,45 +1,71 @@
 "use client";
 
 import * as React from "react";
-import * as TabsPrimitive from "@radix-ui/react-tabs";
+import { Tabs as HeroTabs } from "@heroui/react";
 
 import { cn } from "@/lib/utils";
 
-const Tabs = TabsPrimitive.Root;
+type TabsProps = Omit<React.ComponentProps<"div">, "defaultValue" | "onChange" | "value"> & {
+  defaultValue?: string;
+  onValueChange?: (value: string) => void;
+  value?: string;
+};
 
-const TabsList = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.List>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.List
+const Tabs = ({
+  children,
+  defaultValue,
+  onValueChange,
+  value,
+  ...props
+}: TabsProps) => {
+  return (
+    <HeroTabs.Root
+      defaultSelectedKey={defaultValue}
+      onSelectionChange={(key) => onValueChange?.(key == null ? "" : String(key))}
+      selectedKey={value == null ? undefined : value}
+      variant="primary"
+      {...(props as React.ComponentProps<typeof HeroTabs.Root>)}
+    >
+      {children}
+    </HeroTabs.Root>
+  );
+};
+
+const TabsList = React.forwardRef<HTMLDivElement, React.ComponentProps<"div">>(({ className, ...props }, ref) => (
+  <HeroTabs.List
+    className={cn(className)}
     ref={ref}
-    className={cn("inline-flex h-10 items-center justify-center rounded-xl bg-zinc-100 p-1", className)}
-    {...props}
+    {...(props as React.ComponentProps<typeof HeroTabs.List>)}
   />
 ));
-TabsList.displayName = TabsPrimitive.List.displayName;
+TabsList.displayName = "TabsList";
 
-const TabsTrigger = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ring-offset-white transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 data-[state=active]:bg-white data-[state=active]:text-emerald-700",
-      className,
-    )}
-    {...props}
-  />
-));
-TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
+type TabsTriggerProps = React.ComponentProps<"div"> & { value: string };
 
-const TabsContent = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Content ref={ref} className={cn("mt-2", className)} {...props} />
-));
-TabsContent.displayName = TabsPrimitive.Content.displayName;
+const TabsTrigger = React.forwardRef<HTMLDivElement, TabsTriggerProps>(
+  ({ className, value, ...props }, ref) => (
+    <HeroTabs.Tab
+      className={cn(className)}
+      id={value}
+      ref={ref}
+      {...(props as React.ComponentProps<typeof HeroTabs.Tab>)}
+    />
+  ),
+);
+TabsTrigger.displayName = "TabsTrigger";
+
+type TabsContentProps = React.ComponentProps<"div"> & { value: string };
+
+const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
+  ({ className, value, ...props }, ref) => (
+    <HeroTabs.Panel
+      className={cn("mt-2", className)}
+      id={value}
+      ref={ref}
+      {...(props as React.ComponentProps<typeof HeroTabs.Panel>)}
+    />
+  ),
+);
+TabsContent.displayName = "TabsContent";
 
 export { Tabs, TabsList, TabsTrigger, TabsContent };

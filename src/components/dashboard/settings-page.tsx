@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 
 import { DashboardTopbar } from "@/components/dashboard/topbar";
@@ -23,6 +24,9 @@ interface SettingsData {
   dailyMessageLimit: number;
   businessOutgoingToday: number;
   businessLimitReached: boolean;
+  setupCompleted: boolean;
+  setupStep: number;
+  whatsappNumber: string;
 }
 
 export function SettingsPageClient() {
@@ -144,6 +148,20 @@ export function SettingsPageClient() {
           <AlertTitle>Business daily message limit reached.</AlertTitle>
           <AlertDescription>
             Kuota harian bisnis sudah mencapai batas. Pengiriman baru akan dibuka kembali besok.
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {data && !data.setupCompleted ? (
+        <Alert variant="warning" className="mb-4">
+          <AlertTitle>Setup Bisnis Belum Selesai</AlertTitle>
+          <AlertDescription>
+            Lengkapi setup langkah {data.setupStep}/7 agar AI bisa memberi rekomendasi yang akurat.
+            {" "}
+            <Link href="/dashboard/setup" className="font-semibold underline">
+              Buka Setup
+            </Link>
+            .
           </AlertDescription>
         </Alert>
       ) : null}

@@ -1,44 +1,71 @@
+"use client";
+
 import * as React from "react";
+import { Button as HeroButton, buttonVariants as heroButtonVariants } from "@heroui/react";
 import { Slot } from "@radix-ui/react-slot";
-import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300",
-  {
-    variants: {
-      variant: {
-        default: "bg-emerald-600 text-white shadow-sm hover:bg-emerald-500",
-        destructive: "bg-red-600 text-white hover:bg-red-500",
-        outline: "border border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100",
-        secondary: "bg-zinc-100 text-zinc-700 hover:bg-zinc-200",
-        ghost: "text-zinc-700 hover:bg-zinc-100",
-      },
-      size: {
-        default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-lg px-3",
-        lg: "h-11 rounded-xl px-8",
-        icon: "h-10 w-10",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  },
-);
+type LegacyVariant = "default" | "destructive" | "outline" | "secondary" | "ghost";
+type LegacySize = "default" | "sm" | "lg" | "icon";
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+const variantMap: Record<LegacyVariant, "primary" | "danger" | "outline" | "secondary" | "ghost"> = {
+  default: "primary",
+  destructive: "danger",
+  outline: "outline",
+  secondary: "secondary",
+  ghost: "ghost",
+};
+
+const sizeMap: Record<LegacySize, "sm" | "md" | "lg"> = {
+  default: "md",
+  sm: "sm",
+  lg: "lg",
+  icon: "sm",
+};
+
+const buttonVariants = ({
+  variant = "default",
+  size = "default",
+  className,
+}: {
+  variant?: LegacyVariant;
+  size?: LegacySize;
+  className?: string;
+}) =>
+  cn(
+    heroButtonVariants({
+      isIconOnly: size === "icon",
+      size: sizeMap[size],
+      variant: variantMap[variant],
+    }),
+    size === "icon" && "h-10 w-10 min-w-10 p-0",
+    className,
+  );
+
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
+  size?: LegacySize;
+  variant?: LegacyVariant;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+  ({ asChild = false, className, size = "default", variant = "default", disabled, ...props }, ref) => {
+    if (asChild) {
+      const Comp = Slot;
+      return <Comp className={buttonVariants({ variant, size, className })} ref={ref} {...props} />;
+    }
+
+    return (
+      <HeroButton
+        className={cn(size === "icon" && "h-10 w-10 min-w-10 p-0", className)}
+        isDisabled={disabled}
+        isIconOnly={size === "icon"}
+        size={sizeMap[size]}
+        variant={variantMap[variant]}
+        {...(props as React.ComponentProps<typeof HeroButton>)}
+      />
+    );
   },
 );
 Button.displayName = "Button";

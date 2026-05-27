@@ -210,7 +210,7 @@ export function OrdersPageClient() {
                     <TableCell>{order.notes || "-"}</TableCell>
                     <TableCell>{formatDateTime(order.createdAt)}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(order)}>
+                      <Button aria-label="Edit order" variant="ghost" size="icon" onClick={() => openEdit(order)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
                     </TableCell>

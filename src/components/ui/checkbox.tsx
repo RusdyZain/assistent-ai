@@ -1,28 +1,33 @@
 "use client";
 
 import * as React from "react";
-import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { Check } from "lucide-react";
+import { Checkbox as HeroCheckbox } from "@heroui/react";
 
 import { cn } from "@/lib/utils";
 
-const Checkbox = React.forwardRef<
-  React.ElementRef<typeof CheckboxPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <CheckboxPrimitive.Root
-    ref={ref}
-    className={cn(
-      "peer h-4 w-4 shrink-0 rounded-md border border-zinc-400 ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 data-[state=checked]:border-emerald-600 data-[state=checked]:bg-emerald-600 data-[state=checked]:text-white",
-      className,
-    )}
-    {...props}
-  >
-    <CheckboxPrimitive.Indicator className="flex items-center justify-center text-current">
-      <Check className="h-4 w-4" />
-    </CheckboxPrimitive.Indicator>
-  </CheckboxPrimitive.Root>
-));
-Checkbox.displayName = CheckboxPrimitive.Root.displayName;
+type HeroCheckboxProps = React.ComponentProps<typeof HeroCheckbox.Root>;
+
+interface CheckboxProps
+  extends Omit<HeroCheckboxProps, "defaultSelected" | "isDisabled" | "isSelected" | "onChange"> {
+  checked?: boolean;
+  defaultChecked?: boolean;
+  disabled?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
+}
+
+const Checkbox = React.forwardRef<HTMLLabelElement, CheckboxProps>(
+  ({ checked, className, defaultChecked, disabled, onCheckedChange, ...props }, ref) => (
+    <HeroCheckbox.Root
+      ref={ref}
+      className={cn("inline-flex", className)}
+      defaultSelected={defaultChecked}
+      isDisabled={disabled}
+      isSelected={checked}
+      onChange={(isSelected) => onCheckedChange?.(Boolean(isSelected))}
+      {...props}
+    />
+  ),
+);
+Checkbox.displayName = "Checkbox";
 
 export { Checkbox };

@@ -14,6 +14,7 @@
     "db:seed": "prisma db seed"
   },
   "dependencies": {
+    "@heroui/react": "^3.0.5",
     "@prisma/client": "^6.15.0",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-checkbox": "^1.3.3",
@@ -30,6 +31,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.3.0",
+    "framer-motion": "^12.40.0",
     "jose": "^6.2.3",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",

@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmAlertDialog } from "@/components/ui/confirm-alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -56,6 +57,8 @@ export function CustomerDetailPageClient({ customerId }: { customerId: string })
   const [saving, setSaving] = useState(false);
   const [clearingChat, setClearingChat] = useState(false);
   const [deletingCustomer, setDeletingCustomer] = useState(false);
+  const [confirmClearChatOpen, setConfirmClearChatOpen] = useState(false);
+  const [confirmDeleteCustomerOpen, setConfirmDeleteCustomerOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -151,11 +154,6 @@ export function CustomerDetailPageClient({ customerId }: { customerId: string })
   const handleClearChat = async () => {
     if (!detail) return;
 
-    const approved = window.confirm(
-      "Hapus semua isi chat customer ini? Riwayat pesan akan dihapus permanen.",
-    );
-    if (!approved) return;
-
     setClearingChat(true);
     setError(null);
     setSuccess(null);
@@ -182,11 +180,6 @@ export function CustomerDetailPageClient({ customerId }: { customerId: string })
   const handleDeleteCustomer = async () => {
     if (!detail) return;
 
-    const approved = window.confirm(
-      "Hapus customer ini beserta seluruh riwayat chat/order/follow-up terkait? Tindakan ini permanen.",
-    );
-    if (!approved) return;
-
     setDeletingCustomer(true);
     setError(null);
     setSuccess(null);
@@ -199,7 +192,7 @@ export function CustomerDetailPageClient({ customerId }: { customerId: string })
       const data = (await response.json().catch(() => null)) as { error?: string } | null;
 
       if (!response.ok) {
-        throw new Error(data.error ?? "Gagal menghapus customer");
+        throw new Error(data?.error ?? "Gagal menghapus customer");
       }
 
       router.replace("/dashboard/customers");
@@ -312,7 +305,7 @@ export function CustomerDetailPageClient({ customerId }: { customerId: string })
               <Button
                 className="w-full"
                 variant="outline"
-                onClick={handleClearChat}
+                onClick={() => setConfirmClearChatOpen(true)}
                 disabled={saving || clearingChat || deletingCustomer}
               >
                 {clearingChat ? "Menghapus Isi Chat..." : "Hapus Isi Chat Customer"}
@@ -320,7 +313,7 @@ export function CustomerDetailPageClient({ customerId }: { customerId: string })
               <Button
                 className="w-full"
                 variant="destructive"
-                onClick={handleDeleteCustomer}
+                onClick={() => setConfirmDeleteCustomerOpen(true)}
                 disabled={saving || clearingChat || deletingCustomer}
               >
                 {deletingCustomer ? "Menghapus Customer..." : "Hapus Customer"}
@@ -428,6 +421,26 @@ export function CustomerDetailPageClient({ customerId }: { customerId: string })
           </div>
         </div>
       )}
+
+      <ConfirmAlertDialog
+        open={confirmClearChatOpen}
+        onOpenChange={setConfirmClearChatOpen}
+        title="Hapus isi chat customer?"
+        description="Riwayat pesan customer akan dihapus permanen."
+        confirmLabel={clearingChat ? "Menghapus..." : "Ya, hapus chat"}
+        loading={clearingChat}
+        onConfirm={handleClearChat}
+      />
+
+      <ConfirmAlertDialog
+        open={confirmDeleteCustomerOpen}
+        onOpenChange={setConfirmDeleteCustomerOpen}
+        title="Hapus customer ini?"
+        description="Customer beserta riwayat chat, order, dan follow-up terkait akan dihapus permanen."
+        confirmLabel={deletingCustomer ? "Menghapus..." : "Ya, hapus customer"}
+        loading={deletingCustomer}
+        onConfirm={handleDeleteCustomer}
+      />
     </div>
   );
 }
