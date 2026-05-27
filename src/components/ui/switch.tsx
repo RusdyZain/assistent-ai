@@ -15,18 +15,25 @@ type SwitchProps = Omit<HeroSwitchProps, "defaultSelected" | "isDisabled" | "isS
 };
 
 const Switch = React.forwardRef<HTMLLabelElement, SwitchProps>(
-  ({ checked, className, defaultChecked, disabled, onCheckedChange, ...props }, ref) => (
-    <HeroSwitch.Root
-      ref={ref}
-      className={cn("inline-flex", className)}
-      defaultSelected={defaultChecked}
-      isDisabled={disabled}
-      isSelected={checked}
-      onChange={(isSelected) => onCheckedChange?.(Boolean(isSelected))}
-      size="md"
-      {...props}
-    />
-  ),
+  ({ checked, className, defaultChecked, disabled, onCheckedChange, ...props }, ref) => {
+    const safeProps =
+      props["aria-label"] || props["aria-labelledby"]
+        ? props
+        : { ...props, "aria-label": props.name?.trim() || "Toggle switch" };
+
+    return (
+      <HeroSwitch.Root
+        ref={ref}
+        className={cn("inline-flex", className)}
+        defaultSelected={defaultChecked}
+        isDisabled={disabled}
+        isSelected={checked}
+        onChange={(isSelected) => onCheckedChange?.(Boolean(isSelected))}
+        size="md"
+        {...safeProps}
+      />
+    );
+  },
 );
 Switch.displayName = "Switch";
 

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireBusiness, unauthorizedResponse } from "@/lib/business";
+import { normalizeFonnteToken } from "@/lib/fonnte";
 import { prisma } from "@/lib/prisma";
 import { evaluateSetupCompletion } from "@/lib/setup";
 
@@ -304,7 +305,7 @@ export async function PATCH(request: Request) {
       await prisma.business.update({
         where: { id: business.id },
         data: {
-          fonnteToken: parsed.data.payload.fonnteToken,
+          fonnteToken: normalizeFonnteToken(parsed.data.payload.fonnteToken),
           whatsappNumber: parsed.data.payload.whatsappNumber,
           phone: parsed.data.payload.whatsappNumber,
         },

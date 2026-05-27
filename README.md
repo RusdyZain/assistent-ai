@@ -145,8 +145,8 @@ npm run dev
 ```
 
 ## Login Demo Seed
-- Email: `owner@waisales.test`
-- Password: `admin123`
+- Email: `ryanfajri28@gmail.com`
+- Password: `1234567Rusdy`
 
 Bisa diubah via env seed:
 - `SEED_ADMIN_EMAIL`

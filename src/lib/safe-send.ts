@@ -1,7 +1,7 @@
 import { startOfDay } from "date-fns";
 import { Prisma } from "@prisma/client";
 
-import { sendWhatsAppMessage } from "@/lib/fonnte";
+import { normalizeFonnteToken, sendWhatsAppMessage } from "@/lib/fonnte";
 import {
   canSendMessage,
   getBusinessDailyOutgoingCount,
@@ -19,13 +19,11 @@ function wait(ms: number) {
 
 function resolveEnvFonnteToken() {
   const envToken = process.env.FONNTE_TOKEN ?? process.env.SEED_FONNTE_TOKEN;
-  if (envToken?.trim()) return envToken.trim();
-
-  return null;
+  return normalizeFonnteToken(envToken);
 }
 
 function resolveFonnteTokens(dbToken: string | null | undefined) {
-  const normalizedDbToken = dbToken?.trim() || null;
+  const normalizedDbToken = normalizeFonnteToken(dbToken);
   const envToken = resolveEnvFonnteToken();
 
   if (normalizedDbToken) {
@@ -214,7 +212,7 @@ export async function safeSendWhatsAppMessage({
 
       sendResult = fallbackSendResult;
 
-      if (fallbackSendResult.ok && business.fonnteToken?.trim() !== fallbackToken) {
+      if (fallbackSendResult.ok && normalizeFonnteToken(business.fonnteToken) !== fallbackToken) {
         await prisma.business.update({
           where: { id: businessId },
           data: { fonnteToken: fallbackToken },

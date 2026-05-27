@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireBusiness, unauthorizedResponse } from "@/lib/business";
-import { sendWhatsAppMessage } from "@/lib/fonnte";
+import { normalizeFonnteToken, sendWhatsAppMessage } from "@/lib/fonnte";
 import { normalizePhone } from "@/lib/utils";
 
 const schema = z.object({
@@ -11,9 +11,15 @@ const schema = z.object({
 });
 
 function resolveToken(dbToken: string | null) {
-  if (dbToken?.trim()) return dbToken.trim();
-  if (process.env.FONNTE_TOKEN?.trim()) return process.env.FONNTE_TOKEN.trim();
-  if (process.env.SEED_FONNTE_TOKEN?.trim()) return process.env.SEED_FONNTE_TOKEN.trim();
+  const normalizedDbToken = normalizeFonnteToken(dbToken);
+  if (normalizedDbToken) return normalizedDbToken;
+
+  const normalizedEnvToken = normalizeFonnteToken(process.env.FONNTE_TOKEN);
+  if (normalizedEnvToken) return normalizedEnvToken;
+
+  const normalizedSeedToken = normalizeFonnteToken(process.env.SEED_FONNTE_TOKEN);
+  if (normalizedSeedToken) return normalizedSeedToken;
+
   return null;
 }
 

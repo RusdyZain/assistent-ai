@@ -8,14 +8,24 @@ import { ArrowLeft, Lock, Mail } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  DEFAULT_BUSINESS_EMAIL,
+  DEFAULT_LOGIN_PASSWORD,
+} from "@/lib/constants";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("owner@waisales.test");
-  const [password, setPassword] = useState("admin123");
+  const [email, setEmail] = useState(DEFAULT_BUSINESS_EMAIL);
+  const [password, setPassword] = useState(DEFAULT_LOGIN_PASSWORD);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,20 +65,28 @@ export default function LoginPage() {
 
       <Card className="w-full max-w-md border-zinc-200/90">
         <CardHeader className="space-y-3">
-          <Link className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-800" href="/">
+          <Link
+            className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-800"
+            href="/"
+          >
             <ArrowLeft className="h-4 w-4" />
             Kembali ke landing page
           </Link>
           <div>
-            <Image src="/logo.png" alt="WAI Sales Assistant" width={180} height={60} className="mb-3 h-8 w-auto" priority />
-            <CardTitle className="text-2xl tracking-tight">Login WAI Sales Assistant</CardTitle>
+            <Image
+              src="/logo.png"
+              alt="WAI Sales Assistant"
+              width={180}
+              height={60}
+              className="mb-3 h-8 w-auto"
+              priority
+            />
+            <CardTitle className="text-2xl tracking-tight">
+              Login WAI Sales Assistant
+            </CardTitle>
             <CardDescription className="mt-1">
               Masuk ke dashboard inbox WhatsApp bisnis Anda.
             </CardDescription>
-          </div>
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 px-3 py-2 text-xs text-emerald-700">
-            Demo: <span className="font-semibold">owner@waisales.test</span> /{" "}
-            <span className="font-semibold">admin123</span>
           </div>
         </CardHeader>
         <CardContent>

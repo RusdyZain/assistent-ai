@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { subSeconds } from "date-fns";
 
 import { extractFonnteMessage } from "@/lib/fonnte-webhook";
+import { normalizeFonnteToken } from "@/lib/fonnte";
 import { runAIAnalysisForConversation } from "@/lib/pipeline";
 import { prisma } from "@/lib/prisma";
 import { safeSendWhatsAppMessage } from "@/lib/safe-send";
@@ -24,10 +25,11 @@ function isAutoReplyEnabled() {
 }
 
 async function resolveBusinessByWebhook(payload: Record<string, unknown>) {
-  const tokenFromPayload =
+  const tokenFromPayload = normalizeFonnteToken(
     (typeof payload.token === "string" && payload.token) ||
-    (typeof payload.device === "string" && payload.device) ||
-    null;
+      (typeof payload.device === "string" && payload.device) ||
+      null,
+  );
 
   if (tokenFromPayload) {
     const business = await prisma.business.findFirst({
@@ -37,6 +39,25 @@ async function resolveBusinessByWebhook(payload: Record<string, unknown>) {
     });
 
     if (business) return business;
+  }
+
+  const deviceFromPayload =
+    (typeof payload.device === "string" && payload.device.trim()) ||
+    (typeof payload.sender === "string" && payload.sender.trim()) ||
+    null;
+
+  if (deviceFromPayload) {
+    const normalizedDevice = normalizePhone(deviceFromPayload);
+    const businessByDevice = await prisma.business.findFirst({
+      where: {
+        OR: [
+          { whatsappNumber: normalizedDevice },
+          { phone: normalizedDevice },
+        ],
+      },
+    });
+
+    if (businessByDevice) return businessByDevice;
   }
 
   return prisma.business.findFirst({

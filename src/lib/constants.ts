@@ -1,7 +1,7 @@
 export const APP_NAME = "WAI Sales Assistant";
 export const SESSION_COOKIE = "wai_session";
-export const DEFAULT_BUSINESS_EMAIL = "owner@waisales.test";
-export const DEFAULT_LOGIN_PASSWORD = "admin123";
+export const DEFAULT_BUSINESS_EMAIL = "ryanfajri28@gmail.com";
+export const DEFAULT_LOGIN_PASSWORD = "1234567Rusdy";
 
 export const LEAD_STATUS_COLOR: Record<string, string> = {
   hot: "bg-red-100 text-red-700 border-red-300",

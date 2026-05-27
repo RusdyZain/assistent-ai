@@ -2,6 +2,18 @@ import { FonnteSendParams, FonnteSendResult } from "@/types/sales";
 
 const FONNTE_SEND_URL = "https://api.fonnte.com/send";
 
+export function normalizeFonnteToken(token: string | null | undefined) {
+  if (typeof token !== "string") return null;
+
+  const trimmed = token.trim();
+  if (!trimmed) return null;
+
+  const withoutWrapperQuotes = trimmed.replace(/^['"](.*)['"]$/, "$1").trim();
+  const withoutBearerPrefix = withoutWrapperQuotes.replace(/^Bearer\s+/i, "").trim();
+
+  return withoutBearerPrefix || null;
+}
+
 function parseFonnteFailure(payload: unknown) {
   if (!payload || typeof payload !== "object") return null;
 
@@ -26,6 +38,16 @@ export async function sendWhatsAppMessage({
   message,
   inboxId,
 }: FonnteSendParams): Promise<FonnteSendResult> {
+  const normalizedToken = normalizeFonnteToken(token);
+  if (!normalizedToken) {
+    return {
+      ok: false,
+      status: 400,
+      payload: null,
+      error: "Fonnte token tidak valid atau kosong",
+    };
+  }
+
   const body = new URLSearchParams({
     target,
     message,
@@ -39,7 +61,7 @@ export async function sendWhatsAppMessage({
     const response = await fetch(FONNTE_SEND_URL, {
       method: "POST",
       headers: {
-        Authorization: token,
+        Authorization: normalizedToken,
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body,

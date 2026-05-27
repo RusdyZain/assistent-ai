@@ -70,6 +70,8 @@ export function DashboardSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              aria-label={item.label}
+              title={item.label}
               className={cn(
                 "flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                 active
@@ -78,7 +80,7 @@ export function DashboardSidebar() {
               )}
             >
               <Icon className="h-4 w-4" />
-              <span className="hidden md:inline">{item.label}</span>
+              <span className="sr-only md:not-sr-only">{item.label}</span>
             </Link>
           );
         })}

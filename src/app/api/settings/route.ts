@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireBusiness, unauthorizedResponse } from "@/lib/business";
+import { normalizeFonnteToken } from "@/lib/fonnte";
 import { getBusinessDailyOutgoingCount } from "@/lib/message-guard";
 import { prisma } from "@/lib/prisma";
 
@@ -60,18 +61,18 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Payload settings tidak valid" }, { status: 400 });
     }
 
+    const normalizedFonnteToken =
+      parsed.data.fonnteToken === undefined
+        ? undefined
+        : normalizeFonnteToken(parsed.data.fonnteToken);
+
     const updated = await prisma.business.update({
       where: {
         id: business.id,
       },
       data: {
         ...parsed.data,
-        fonnteToken:
-          parsed.data.fonnteToken === ""
-            ? null
-            : parsed.data.fonnteToken === undefined
-              ? undefined
-              : parsed.data.fonnteToken,
+        fonnteToken: normalizedFonnteToken,
       },
     });
 

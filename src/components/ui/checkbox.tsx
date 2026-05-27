@@ -16,17 +16,24 @@ interface CheckboxProps
 }
 
 const Checkbox = React.forwardRef<HTMLLabelElement, CheckboxProps>(
-  ({ checked, className, defaultChecked, disabled, onCheckedChange, ...props }, ref) => (
-    <HeroCheckbox.Root
-      ref={ref}
-      className={cn("inline-flex", className)}
-      defaultSelected={defaultChecked}
-      isDisabled={disabled}
-      isSelected={checked}
-      onChange={(isSelected) => onCheckedChange?.(Boolean(isSelected))}
-      {...props}
-    />
-  ),
+  ({ checked, className, defaultChecked, disabled, onCheckedChange, ...props }, ref) => {
+    const safeProps =
+      props["aria-label"] || props["aria-labelledby"]
+        ? props
+        : { ...props, "aria-label": props.name?.trim() || "Checkbox" };
+
+    return (
+      <HeroCheckbox.Root
+        ref={ref}
+        className={cn("inline-flex", className)}
+        defaultSelected={defaultChecked}
+        isDisabled={disabled}
+        isSelected={checked}
+        onChange={(isSelected) => onCheckedChange?.(Boolean(isSelected))}
+        {...safeProps}
+      />
+    );
+  },
 );
 Checkbox.displayName = "Checkbox";
 

@@ -29,6 +29,16 @@ interface SettingsData {
   whatsappNumber: string;
 }
 
+interface FonnteTokenCheckData {
+  device: string | null;
+  deviceStatus: string | null;
+  name: string | null;
+  quota: unknown;
+  expired: unknown;
+  messages: unknown;
+  package: unknown;
+}
+
 export function SettingsPageClient() {
   const [data, setData] = useState<SettingsData | null>(null);
   const [name, setName] = useState("");
@@ -41,6 +51,9 @@ export function SettingsPageClient() {
   const [dailyMessageLimit, setDailyMessageLimit] = useState("500");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [checkingToken, setCheckingToken] = useState(false);
+  const [tokenCheckResult, setTokenCheckResult] = useState<string | null>(null);
+  const [tokenCheckError, setTokenCheckError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -122,6 +135,54 @@ export function SettingsPageClient() {
     }
   };
 
+  const handleCheckFonnteToken = async () => {
+    setCheckingToken(true);
+    setTokenCheckResult(null);
+    setTokenCheckError(null);
+
+    try {
+      const response = await fetch("/api/settings/fonnte-token-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token: fonnteToken,
+        }),
+      });
+
+      const result = (await response.json()) as {
+        ok?: boolean;
+        data?: FonnteTokenCheckData;
+        error?: string;
+        payload?: {
+          reason?: unknown;
+        };
+      };
+
+      if (!response.ok || !result.ok) {
+        const payloadReason =
+          typeof result.payload?.reason === "string" ? result.payload.reason : null;
+        throw new Error(
+          payloadReason ??
+            result.error ??
+            `Gagal cek token Fonnte (HTTP ${response.status})`,
+        );
+      }
+
+      const device = result.data?.device ?? "-";
+      const deviceStatus = result.data?.deviceStatus ?? "-";
+      const deviceName = result.data?.name ?? "-";
+      setTokenCheckResult(
+        `Device: ${device} (${deviceName}), status: ${deviceStatus}.`,
+      );
+    } catch (checkError) {
+      setTokenCheckError(
+        checkError instanceof Error ? checkError.message : "Gagal cek token Fonnte.",
+      );
+    } finally {
+      setCheckingToken(false);
+    }
+  };
+
   return (
     <div>
       <DashboardTopbar
@@ -194,12 +255,37 @@ export function SettingsPageClient() {
                 </div>
                 <div className="space-y-2">
                   <Label>Fonnte Token</Label>
-                  <Input
-                    type="password"
-                    value={fonnteToken}
-                    onChange={(event) => setFonnteToken(event.target.value)}
-                    placeholder="Isi token Fonnte"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="password"
+                      value={fonnteToken}
+                      onChange={(event) => setFonnteToken(event.target.value)}
+                      placeholder="Isi token Fonnte"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCheckFonnteToken}
+                      disabled={checkingToken || saving}
+                    >
+                      {checkingToken ? "Mengecek..." : "Cek Token"}
+                    </Button>
+                  </div>
+                  {tokenCheckResult ? (
+                    <p className="text-xs text-zinc-600">{tokenCheckResult}</p>
+                  ) : null}
+                  {tokenCheckError ? (
+                    <Alert variant="destructive" className="mt-2">
+                      <AlertTitle>Token Tidak Valid</AlertTitle>
+                      <AlertDescription>{tokenCheckError}</AlertDescription>
+                    </Alert>
+                  ) : null}
+                  {tokenCheckResult ? (
+                    <Alert className="mt-2">
+                      <AlertTitle>Token Valid</AlertTitle>
+                      <AlertDescription>{tokenCheckResult}</AlertDescription>
+                    </Alert>
+                  ) : null}
                 </div>
 
                 <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3">

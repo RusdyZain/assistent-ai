@@ -5,6 +5,252 @@ import { DEFAULT_BUSINESS_EMAIL, DEFAULT_LOGIN_PASSWORD } from "../src/lib/const
 
 const prisma = new PrismaClient();
 
+const nusadexKnowledgeBase = [
+  {
+    title: "Tentang Nusadex",
+    category: "other" as const,
+    content:
+      "Nusadex adalah Digital Technology Studio yang membantu bisnis membangun website, sistem digital, dashboard, automasi, dan integrasi AI agar operasional lebih rapi, profesional, dan siap berkembang.",
+  },
+  {
+    title: "Positioning Nusadex",
+    category: "other" as const,
+    content:
+      "Nusadex bukan sekadar jasa coding. Kami berperan sebagai partner strategis untuk merancang infrastruktur digital bisnis, mulai dari alur kerja, sistem, website, database, hingga AI integration.",
+  },
+  {
+    title: "Layanan Website Bisnis",
+    category: "other" as const,
+    content:
+      "Nusadex melayani pembuatan website company profile, landing page, website booking, katalog produk, website properti, website sekolah, website klinik/spa, dan website custom sesuai kebutuhan bisnis.",
+  },
+  {
+    title: "Layanan Sistem Digital",
+    category: "other" as const,
+    content:
+      "Nusadex dapat membangun sistem digital seperti admin panel, CRM, sistem booking, sistem order, dashboard laporan, manajemen customer, manajemen produk, dan sistem operasional bisnis lainnya.",
+  },
+  {
+    title: "Layanan AI Integration",
+    category: "other" as const,
+    content:
+      "Nusadex membantu integrasi AI untuk kebutuhan bisnis seperti chatbot, auto-reply, analisis data customer, rekomendasi produk, follow-up otomatis, dan automasi proses kerja tertentu.",
+  },
+  {
+    title: "Alur Kerja Project",
+    category: "booking" as const,
+    content:
+      "Alur kerja Nusadex dimulai dari diskusi kebutuhan, analisis masalah bisnis, penyusunan konsep solusi, penawaran harga, development, testing, revisi, deployment, dan support awal setelah project selesai.",
+  },
+  {
+    title: "Konsultasi Awal",
+    category: "booking" as const,
+    content:
+      "Untuk konsultasi awal, calon klien dapat menjelaskan jenis bisnis, masalah yang sedang dihadapi, fitur yang dibutuhkan, referensi desain jika ada, dan target penggunaan sistem atau website.",
+  },
+  {
+    title: "Estimasi Harga",
+    category: "other" as const,
+    content:
+      "Harga project Nusadex menyesuaikan kebutuhan, kompleksitas fitur, jumlah halaman, sistem admin, integrasi, dan tingkat custom. Untuk estimasi lebih akurat, tim perlu memahami kebutuhan bisnis terlebih dahulu.",
+  },
+  {
+    title: "Estimasi Waktu Pengerjaan",
+    category: "other" as const,
+    content:
+      "Estimasi pengerjaan bergantung pada skala project. Website sederhana biasanya lebih cepat, sedangkan sistem custom dengan admin panel, database, dan integrasi membutuhkan waktu lebih panjang.",
+  },
+  {
+    title: "Metode Pembayaran",
+    category: "payment" as const,
+    content:
+      "Pembayaran project Nusadex dapat dilakukan melalui transfer bank/e-wallet sesuai invoice. Untuk memulai project, biasanya diperlukan DP terlebih dahulu sesuai kesepakatan.",
+  },
+  {
+    title: "Ketentuan DP Project",
+    category: "payment" as const,
+    content:
+      "DP digunakan sebagai tanda jadi project dan untuk memulai proses analisis, desain, dan development. Besaran DP menyesuaikan nilai project dan kesepakatan dengan klien.",
+  },
+  {
+    title: "Revisi Project",
+    category: "other" as const,
+    content:
+      "Revisi dilakukan berdasarkan scope awal yang telah disepakati. Perubahan besar di luar scope awal dapat dihitung sebagai tambahan pekerjaan atau pengembangan tahap berikutnya.",
+  },
+  {
+    title: "Maintenance Website/Sistem",
+    category: "other" as const,
+    content:
+      "Nusadex dapat menyediakan layanan maintenance untuk update konten, perbaikan bug, backup, monitoring, dan pengembangan fitur lanjutan sesuai kebutuhan klien.",
+  },
+  {
+    title: "Domain dan Hosting",
+    category: "other" as const,
+    content:
+      "Nusadex dapat membantu pengaturan domain, hosting, VPS, deployment, SSL, email bisnis, dan konfigurasi teknis lainnya sesuai kebutuhan project.",
+  },
+  {
+    title: "Kepemilikan Project",
+    category: "other" as const,
+    content:
+      "Setelah project selesai dan pembayaran diselesaikan, hasil project diserahkan sesuai kesepakatan. Detail terkait source code, hosting, akses admin, dan aset digital perlu dijelaskan dalam perjanjian project.",
+  },
+  {
+    title: "Kontak Nusadex",
+    category: "other" as const,
+    content:
+      "Nusadex dapat dihubungi melalui WhatsApp resmi, email bisnis, dan website nusadex.com. Tim akan membantu menjadwalkan diskusi jika calon klien membutuhkan konsultasi lebih lanjut.",
+  },
+  {
+    title: "Lokasi Nusadex",
+    category: "address" as const,
+    content:
+      "Nusadex berbasis di Lombok, Nusa Tenggara Barat, dan dapat melayani project secara online maupun offline sesuai kebutuhan dan kesepakatan.",
+  },
+  {
+    title: "Target Klien Nusadex",
+    category: "other" as const,
+    content:
+      "Nusadex cocok untuk UMKM, brand lokal, bisnis jasa, spa/klinik, properti, sekolah, komunitas, instansi, dan bisnis yang ingin memiliki sistem digital sendiri.",
+  },
+  {
+    title: "Keunggulan Nusadex",
+    category: "other" as const,
+    content:
+      "Keunggulan Nusadex adalah pendekatan yang dimulai dari pemahaman masalah bisnis terlebih dahulu sebelum membuat sistem. Prinsip kami: Duduk dulu, mikir dulu, baru bangun solusi.",
+  },
+  {
+    title: "Kebijakan Refund",
+    category: "refund" as const,
+    content:
+      "Refund mengikuti kesepakatan project. Jika project sudah masuk tahap analisis, desain, atau development, biaya yang sudah digunakan untuk pekerjaan berjalan tidak dapat dikembalikan sepenuhnya.",
+  },
+  {
+    title: "Reschedule Meeting",
+    category: "reschedule" as const,
+    content:
+      "Jadwal meeting atau konsultasi dapat dijadwalkan ulang dengan konfirmasi terlebih dahulu, idealnya minimal beberapa jam sebelum jadwal yang sudah disepakati.",
+  },
+  {
+    title: "Promo Website Bisnis",
+    category: "promo" as const,
+    content:
+      "Nusadex dapat membuka promo tertentu untuk pembuatan website bisnis, landing page, atau sistem sederhana. Promo aktif akan diinformasikan oleh admin jika tersedia.",
+  },
+  {
+    title: "FAQ Website vs Marketplace",
+    category: "faq" as const,
+    content:
+      "Marketplace bagus untuk berjualan, tetapi website pribadi penting untuk membangun brand, database customer, kredibilitas, dan channel penjualan milik bisnis sendiri.",
+  },
+  {
+    title: "FAQ Butuh Website atau Sistem",
+    category: "faq" as const,
+    content:
+      "Jika bisnis hanya butuh tampil profesional dan menjelaskan layanan, website sudah cukup. Jika bisnis butuh mengelola data, booking, order, laporan, atau customer, maka dibutuhkan sistem/admin panel.",
+  },
+  {
+    title: "FAQ AI untuk Bisnis",
+    category: "faq" as const,
+    content:
+      "AI dapat membantu bisnis membalas chat, mengelola pertanyaan customer, membuat rekomendasi, menyusun follow-up, dan mempercepat pekerjaan berulang. Namun penerapannya harus disesuaikan dengan alur bisnis.",
+  },
+  {
+    title: "Flow Percakapan BOT Nusadex",
+    category: "other" as const,
+    content:
+      "Alur ideal: sapaan, tanya kebutuhan, tanya jenis bisnis, tanya kendala utama, tanya fitur, tanya budget dan timeline, rekap kebutuhan, lalu alihkan ke admin/sales untuk konsultasi lanjut.",
+  },
+  {
+    title: "Data Lead yang Dikumpulkan BOT",
+    category: "other" as const,
+    content:
+      "Nama calon klien, nama bisnis, bidang bisnis, kebutuhan, masalah utama, fitur yang diinginkan, budget, timeline, kontak, dan status lead (warm/hot/cold).",
+  },
+  {
+    title: "Prinsip Jawaban BOT",
+    category: "other" as const,
+    content:
+      "BOT Nusadex tidak langsung lempar angka harga. BOT harus menggali kebutuhan dulu agar solusi tepat, lalu arahkan ke konsultasi dan penyusunan scope project.",
+  },
+];
+
+const nusadexReplyTemplates = [
+  {
+    type: "greeting" as const,
+    title: "Sapaan Awal",
+    content:
+      "Halo kak, terima kasih sudah menghubungi Nusadex. Boleh info, saat ini Kakak ingin membuat website, sistem digital, atau konsultasi dulu terkait kebutuhan bisnisnya?",
+  },
+  {
+    type: "ask_price" as const,
+    title: "Jawaban Harga",
+    content:
+      "Untuk harga, kami perlu lihat dulu kebutuhan dan fitur yang diinginkan ya kak. Karena setiap project bisa berbeda tergantung jumlah halaman, fitur, admin panel, integrasi, dan tingkat custom-nya.",
+  },
+  {
+    type: "ask_stock" as const,
+    title: "Tanya Masalah Bisnis",
+    content:
+      "Saat ini kendala utama di bisnis Kakak apa ya? Apakah di promosi, pencatatan data, booking/order, follow-up customer, laporan, atau operasional yang masih manual?",
+  },
+  {
+    type: "ask_location" as const,
+    title: "Tanya Jenis Bisnis",
+    content:
+      "Boleh kami tahu bisnis Kakak bergerak di bidang apa? Misalnya kuliner, spa/klinik, properti, sekolah, retail, jasa, atau bidang lainnya.",
+  },
+  {
+    type: "ask_booking" as const,
+    title: "Ajakan Konsultasi",
+    content:
+      "Kalau Kakak berkenan, kita bisa jadwalkan diskusi singkat agar tim Nusadex bisa memahami kebutuhan bisnisnya lebih jelas sebelum memberikan penawaran.",
+  },
+  {
+    type: "ask_payment" as const,
+    title: "Info Pembayaran",
+    content:
+      "Untuk memulai project, biasanya diperlukan DP sesuai kesepakatan. Detail pembayaran akan kami informasikan melalui invoice atau arahan resmi dari tim Nusadex.",
+  },
+  {
+    type: "order_recap" as const,
+    title: "Rekap Kebutuhan",
+    content:
+      "Saya rekap dulu ya kak: bisnis [jenis bisnis], kebutuhan [website/sistem/AI], masalah utama [masalah], target waktu [timeline], dan budget estimasi [budget]. Apakah sudah sesuai?",
+  },
+  {
+    type: "follow_up_warm" as const,
+    title: "Follow-up Warm Lead",
+    content:
+      "Halo kak, saya mau follow-up diskusi sebelumnya. Apakah kebutuhan website/sistem digitalnya masih ingin dilanjutkan? Kalau iya, kami bisa bantu rapikan kebutuhannya dulu.",
+  },
+  {
+    type: "follow_up_hot" as const,
+    title: "Follow-up Hot Lead",
+    content:
+      "Halo kak, untuk kebutuhan project yang kemarin sudah dibahas, apakah Kakak ingin kami bantu lanjutkan ke tahap estimasi harga dan scope pekerjaan?",
+  },
+  {
+    type: "payment_reminder" as const,
+    title: "Follow-up Proposal",
+    content:
+      "Halo kak, apakah proposal/estimasi dari Nusadex sudah sempat dicek? Kalau ada bagian yang ingin ditanyakan atau disesuaikan, kami siap bantu jelaskan.",
+  },
+  {
+    type: "complaint_response" as const,
+    title: "Respon Komplain",
+    content:
+      "Terima kasih sudah menginformasikan ya kak. Mohon maaf atas kendalanya. Kami akan bantu cek dan follow-up ke tim terkait agar bisa segera dicarikan solusi terbaik.",
+  },
+  {
+    type: "closing_message" as const,
+    title: "Closing Message",
+    content:
+      "Terima kasih kak sudah menghubungi Nusadex. Semoga kami bisa membantu bisnis Kakak menjadi lebih rapi, profesional, dan siap berkembang secara digital.",
+  },
+];
+
 async function main() {
   console.log("Seeding database...");
 
@@ -20,49 +266,51 @@ async function main() {
   await prisma.webhookEvent.deleteMany();
   await prisma.business.deleteMany();
 
-  const passwordHash = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD ?? DEFAULT_LOGIN_PASSWORD, 10);
+  const seedEmail = process.env.SEED_ADMIN_EMAIL ?? DEFAULT_BUSINESS_EMAIL;
+  const seedPassword = process.env.SEED_ADMIN_PASSWORD ?? DEFAULT_LOGIN_PASSWORD;
+  const passwordHash = await bcrypt.hash(seedPassword, 10);
 
   const business = await prisma.business.create({
     data: {
-      name: "Serenity Spa & Wellness",
-      ownerName: "Nadia Putri",
-      phone: "6281288887777",
-      email: process.env.SEED_ADMIN_EMAIL ?? DEFAULT_BUSINESS_EMAIL,
+      name: "Nusadex",
+      ownerName: "Ryan Fajri",
+      phone: "6281133334444",
+      email: seedEmail,
       passwordHash,
       fonnteToken: process.env.SEED_FONNTE_TOKEN ?? null,
-      businessCategory: "Spa & Wellness",
+      businessCategory: "Digital Technology Studio",
       businessDescription:
-        "Spa premium untuk relaksasi dan perawatan kulit dengan therapist bersertifikasi.",
-      businessLocation: "Jl. Melati No. 28, Makassar",
-      serviceArea: "Makassar kota, Panakkukang, Rappocini",
-      operatingHours: "Senin-Minggu 10:00-21:00",
-      whatsappNumber: "6281288887777",
+        "Partner strategis untuk membangun website, sistem digital, dashboard, automasi, dan integrasi AI untuk pertumbuhan bisnis.",
+      businessLocation: "Lombok, Nusa Tenggara Barat",
+      serviceArea: "Layanan online seluruh Indonesia, offline sesuai kesepakatan",
+      operatingHours: "Senin-Sabtu 09:00-18:00 WITA",
+      whatsappNumber: "6281133334444",
       replyLanguage: "Indonesia",
-      brandTone: "friendly",
+      brandTone: "professional",
       acceptsCOD: false,
       acceptsTransfer: true,
       acceptsQRIS: true,
       requiresDownPayment: true,
-      downPaymentAmount: 100000,
+      downPaymentAmount: 1000000,
       downPaymentPercentage: 30,
-      allowNegotiation: false,
-      minimumOrder: 250000,
+      allowNegotiation: true,
+      minimumOrder: 3000000,
       refundPolicy:
-        "Pembatalan H-1 dapat refund 50%. Hari-H tidak dapat refund kecuali ada kondisi darurat yang disetujui admin.",
+        "Refund mengikuti kesepakatan project. Jika project sudah masuk tahap analisis, desain, atau development, biaya yang sudah digunakan untuk pekerjaan berjalan tidak dapat dikembalikan sepenuhnya.",
       reschedulePolicy:
-        "Reschedule gratis maksimal 1x jika dilakukan minimal 6 jam sebelum jadwal treatment.",
+        "Meeting dapat dijadwalkan ulang dengan konfirmasi terlebih dahulu, idealnya minimal beberapa jam sebelum jadwal yang sudah disepakati.",
       shippingPolicy:
-        "Tidak ada pengiriman fisik. Semua layanan dilakukan di outlet atau home service area tertentu.",
+        "Tidak ada pengiriman fisik. Seluruh layanan berupa konsultasi, development, deployment, dan support digital.",
       paymentInstructions:
-        "Pembayaran via transfer BCA 123456789 a.n. Serenity Spa atau QRIS resmi kasir.",
+        "Pembayaran melalui transfer bank atau e-wallet sesuai invoice resmi dari tim Nusadex.",
       orderProcess:
-        "Konsultasi kebutuhan -> pilih layanan -> konfirmasi jadwal -> bayar DP/full -> datang sesuai jam booking.",
+        "Diskusi kebutuhan -> analisis masalah -> susun scope solusi -> kirim estimasi -> development -> testing -> revisi -> deployment.",
       warmLeadFollowUpHours: 24,
-      hotLeadFollowUpHours: 2,
-      closingPriorityFollowUpHours: 1,
-      waitingPaymentFollowUpHours: 6,
-      maxFollowUpCount: 2,
-      markLostAfterDays: 3,
+      hotLeadFollowUpHours: 4,
+      closingPriorityFollowUpHours: 2,
+      waitingPaymentFollowUpHours: 12,
+      maxFollowUpCount: 3,
+      markLostAfterDays: 7,
       setupCompleted: true,
       setupStep: 7,
     },
@@ -72,310 +320,204 @@ async function main() {
     prisma.product.create({
       data: {
         businessId: business.id,
-        name: "Aromatherapy Relaxation Massage",
+        name: "Website Company Profile",
         type: "service",
-        description: "Pijat relaksasi seluruh tubuh dengan essential oil premium.",
-        price: 350000,
-        promoPrice: 299000,
-        benefits: "Mengurangi pegal, membantu tidur lebih nyenyak, meredakan stres.",
-        suitableFor: "Pekerja kantoran, ibu rumah tangga, customer dengan keluhan pegal.",
+        description:
+          "Website profesional untuk memperkuat brand, menampilkan layanan, dan meningkatkan kredibilitas bisnis.",
+        price: 7500000,
+        promoPrice: 6500000,
+        benefits: "Meningkatkan trust, mempermudah calon klien mengenal bisnis, siap SEO dasar.",
+        suitableFor: "UMKM, brand lokal, klinik/spa, properti, sekolah, bisnis jasa.",
         stock: 999,
         stockStatus: "available",
-        availability: "Setiap hari, by appointment",
-        duration: "90 menit",
+        availability: "Open project slot bulanan",
+        duration: "2-4 minggu",
         minimumOrder: 1,
-        processingTime: "Konfirmasi jadwal maksimal 30 menit",
-        deliveryInfo: "Tersedia in-spa dan home service area Makassar tertentu.",
-        category: "Massage",
-        keywords: ["massage", "aromatherapy", "relaksasi"],
+        processingTime: "Kickoff maksimal 3 hari kerja setelah DP",
+        deliveryInfo: "Fully online, meeting by WhatsApp/Google Meet.",
+        category: "Website",
+        keywords: ["website", "company profile", "branding"],
         faq: {
-          cocokUntuk: "Semua dewasa di atas 18 tahun",
-          catatan: "Harap informasikan riwayat alergi minyak esensial",
+          termasuk: "UI modern, CMS dasar, mobile responsive",
+          catatan: "Copywriting dan foto produk dapat dibantu sebagai add-on",
         },
-        imageUrl: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874",
-        tags: ["best-seller", "relaxing"],
+        imageUrl: "https://images.unsplash.com/photo-1460925895917-afdab827c52f",
+        tags: ["best-seller", "website"],
         isActive: true,
       },
     }),
     prisma.product.create({
       data: {
         businessId: business.id,
-        name: "Hot Stone Therapy",
+        name: "Landing Page Conversion",
         type: "service",
-        description: "Terapi batu hangat untuk melancarkan sirkulasi dan relaksasi otot dalam.",
-        price: 500000,
+        description:
+          "Landing page fokus konversi untuk campaign ads, lead collection, dan validasi penawaran.",
+        price: 4500000,
+        promoPrice: 3900000,
+        benefits: "Menaikkan rasio inquiry, struktur CTA jelas, cocok untuk iklan berbayar.",
+        suitableFor: "Bisnis jasa, kelas online, properti, launching produk.",
+        stock: 999,
+        stockStatus: "available",
+        availability: "Open project slot bulanan",
+        duration: "1-2 minggu",
+        minimumOrder: 1,
+        processingTime: "Kickoff maksimal 3 hari kerja setelah DP",
+        deliveryInfo: "Fully online.",
+        category: "Website",
+        keywords: ["landing page", "conversion", "lead generation"],
+        faq: "Disarankan siapkan objective campaign dan target market sebelum kickoff.",
+        imageUrl: "https://images.unsplash.com/photo-1552664730-d307ca884978",
+        tags: ["fast-delivery", "campaign"],
+        isActive: true,
+      },
+    }),
+    prisma.product.create({
+      data: {
+        businessId: business.id,
+        name: "Sistem CRM & Admin Panel",
+        type: "service",
+        description:
+          "Sistem digital custom untuk operasional: customer management, pipeline, booking/order, dan laporan.",
+        price: 18500000,
         promoPrice: null,
-        benefits: "Membantu mengurangi ketegangan otot dan meningkatkan kualitas tidur.",
-        suitableFor: "Customer dengan keluhan otot kaku dan aktivitas fisik tinggi.",
+        benefits: "Operasional lebih rapi, data terpusat, proses follow-up lebih terukur.",
+        suitableFor: "Bisnis yang prosesnya masih manual dan butuh dashboard internal.",
         stock: 999,
         stockStatus: "available",
-        availability: "Senin-Sabtu",
-        duration: "120 menit",
+        availability: "Open project slot triwulan",
+        duration: "4-8 minggu",
         minimumOrder: 1,
-        processingTime: "Konfirmasi jadwal maksimal 30 menit",
-        deliveryInfo: "In-spa only.",
-        category: "Therapy",
-        keywords: ["hot stone", "therapy", "stress release"],
-        faq: "Tidak direkomendasikan untuk ibu hamil trimester awal.",
-        imageUrl: "https://images.unsplash.com/photo-1519823551278-64ac92734fb1",
-        tags: ["premium", "therapy"],
+        processingTime: "Analisis awal 3-5 hari kerja",
+        deliveryInfo: "Development bertahap dengan milestone.",
+        category: "System",
+        keywords: ["crm", "admin panel", "dashboard"],
+        faq: "Scope final ditentukan setelah discovery dan mapping alur kerja.",
+        imageUrl: "https://images.unsplash.com/photo-1553877522-43269d4ea984",
+        tags: ["custom-system", "core-service"],
         isActive: true,
       },
     }),
     prisma.product.create({
       data: {
         businessId: business.id,
-        name: "Facial Brightening Premium",
+        name: "AI Chatbot & Follow-up Otomatis",
         type: "service",
-        description: "Perawatan wajah untuk kulit kusam agar tampak lebih cerah dan lembap.",
-        price: 425000,
-        promoPrice: 379000,
-        benefits: "Membersihkan pori, menutrisi kulit, meningkatkan glow alami.",
-        suitableFor: "Kulit normal hingga kombinasi.",
-        stock: 999,
-        stockStatus: "available",
-        availability: "Setiap hari",
-        duration: "75 menit",
-        minimumOrder: 1,
-        processingTime: "Konfirmasi jadwal maksimal 30 menit",
-        deliveryInfo: "In-spa only.",
-        category: "Facial",
-        keywords: ["facial", "brightening", "skincare"],
-        faq: "Disarankan tidak memakai makeup 8 jam setelah treatment.",
-        imageUrl: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9",
-        tags: ["facial", "favorite"],
-        isActive: true,
-      },
-    }),
-    prisma.product.create({
-      data: {
-        businessId: business.id,
-        name: "Body Scrub + Milk Bath",
-        type: "service",
-        description: "Eksfoliasi kulit tubuh dilanjutkan milk bath untuk kulit lebih halus.",
-        price: 275000,
+        description:
+          "Integrasi AI untuk auto-reply, lead qualification, rekomendasi respons, dan follow-up otomatis.",
+        price: 12000000,
         promoPrice: null,
-        benefits: "Mengangkat sel kulit mati, membuat kulit lebih lembut.",
-        suitableFor: "Customer yang ingin perawatan badan rutin.",
+        benefits: "Response time lebih cepat, lead lebih terklasifikasi, closing assistant lebih konsisten.",
+        suitableFor: "Bisnis dengan volume chat tinggi di WhatsApp.",
         stock: 999,
         stockStatus: "available",
-        availability: "Setiap hari",
-        duration: "60 menit",
+        availability: "Open project slot bulanan",
+        duration: "3-6 minggu",
         minimumOrder: 1,
-        processingTime: "Konfirmasi jadwal maksimal 30 menit",
-        deliveryInfo: "In-spa only.",
-        category: "Body Treatment",
-        keywords: ["body scrub", "milk bath"],
-        faq: "Hindari treatment jika ada luka terbuka pada kulit.",
-        imageUrl: "https://images.unsplash.com/photo-1556228578-8c89e6adf883",
-        tags: ["body-care"],
+        processingTime: "Analisis flow chat 2-4 hari kerja",
+        deliveryInfo: "Integrasi sesuai channel dan SOP bisnis.",
+        category: "AI Integration",
+        keywords: ["ai chatbot", "automation", "follow-up"],
+        faq: "Performa AI dipengaruhi kualitas data knowledge base dan SOP bisnis.",
+        imageUrl: "https://images.unsplash.com/photo-1677442136019-21780ecad995",
+        tags: ["ai", "automation"],
         isActive: true,
       },
     }),
     prisma.product.create({
       data: {
         businessId: business.id,
-        name: "Couple Spa Package",
+        name: "Paket Growth Stack (Website + CRM + AI)",
         type: "service",
-        description: "Paket berdua untuk relaksasi lengkap termasuk foot bath dan massage.",
-        price: 850000,
-        promoPrice: 790000,
-        benefits: "Pengalaman spa romantis dengan private room.",
-        suitableFor: "Pasangan suami-istri, anniversary, gift.",
+        description:
+          "Paket komprehensif untuk bisnis yang ingin migrasi dari proses manual ke ekosistem digital end-to-end.",
+        price: 32500000,
+        promoPrice: 29000000,
+        benefits: "Satu arsitektur terpadu dari branding, operasional, hingga automasi follow-up.",
+        suitableFor: "Bisnis yang ingin scale-up dan butuh fondasi digital jangka panjang.",
         stock: 999,
         stockStatus: "available",
-        availability: "Setiap hari, booking minimal H-1",
-        duration: "120 menit",
-        minimumOrder: 2,
-        processingTime: "Konfirmasi jadwal maksimal 30 menit",
-        deliveryInfo: "In-spa only, private room terbatas.",
+        availability: "By consultation",
+        duration: "8-12 minggu",
+        minimumOrder: 1,
+        processingTime: "Discovery + roadmap 5-7 hari kerja",
+        deliveryInfo: "Project milestone per fase.",
         category: "Package",
-        keywords: ["couple spa", "package", "anniversary"],
-        faq: "Wajib DP untuk lock slot private room.",
-        imageUrl: "https://images.unsplash.com/photo-1515377905703-c4788e51af15",
-        tags: ["package", "couple", "high-ticket"],
+        keywords: ["growth stack", "website", "crm", "ai"],
+        faq: "Cocok untuk bisnis yang sudah punya validasi market dan siap scale.",
+        imageUrl: "https://images.unsplash.com/photo-1551434678-e076c223a692",
+        tags: ["bundle", "high-ticket", "transformation"],
         isActive: true,
       },
     }),
   ]);
 
   await prisma.replyTemplate.createMany({
-    data: [
-      {
-        businessId: business.id,
-        type: "greeting",
-        title: "Sapaan Awal",
-        content: "Halo kak, makasih sudah hubungi Serenity Spa. Boleh info lagi cari treatment apa ya?",
-      },
-      {
-        businessId: business.id,
-        type: "ask_price",
-        title: "Jawaban Harga",
-        content: "Untuk treatment itu harganya [harga]. Kalau mau aku bantu cek promo aktif hari ini juga bisa ya kak.",
-      },
-      {
-        businessId: business.id,
-        type: "ask_stock",
-        title: "Ketersediaan Slot",
-        content: "Untuk slot treatment masih tersedia kak. Mau booking untuk jam berapa?",
-      },
-      {
-        businessId: business.id,
-        type: "ask_location",
-        title: "Info Lokasi",
-        content: "Outlet kami di [alamat]. Kalau kakak mau, aku kirim pin maps juga.",
-      },
-      {
-        businessId: business.id,
-        type: "ask_booking",
-        title: "Ajakan Booking",
-        content: "Kalau kakak cocok, kita amankan slotnya dulu ya. Boleh info tanggal dan jam yang diinginkan.",
-      },
-      {
-        businessId: business.id,
-        type: "ask_payment",
-        title: "Info Pembayaran",
-        content:
-          "Pembayaran bisa via transfer/QRIS. Untuk lock booking, saat ini perlu DP sesuai ketentuan ya kak.",
-      },
-      {
-        businessId: business.id,
-        type: "order_recap",
-        title: "Rekap Order",
-        content:
-          "Recap dulu ya kak: treatment [layanan], jadwal [jadwal], total [total], pembayaran [metode]. Sudah sesuai?",
-      },
-      {
-        businessId: business.id,
-        type: "follow_up_warm",
-        title: "Follow-up Warm Lead",
-        content: "Halo kak, mau aku bantu lanjutkan booking treatment yang kemarin sempat ditanya?",
-      },
-      {
-        businessId: business.id,
-        type: "follow_up_hot",
-        title: "Follow-up Hot Lead",
-        content: "Hi kak, slot favorit tinggal sedikit. Mau aku tahan dulu sesuai jam yang kakak mau?",
-      },
-      {
-        businessId: business.id,
-        type: "payment_reminder",
-        title: "Reminder Pembayaran",
-        content: "Halo kak, friendly reminder untuk pembayaran bookingnya ya. Kalau sudah transfer boleh kirim bukti di sini.",
-      },
-      {
-        businessId: business.id,
-        type: "complaint_response",
-        title: "Respon Komplain",
-        content:
-          "Terima kasih sudah info ya kak, maaf atas ketidaknyamanannya. Kami bantu follow up cepat untuk solusi terbaik.",
-      },
-      {
-        businessId: business.id,
-        type: "closing_message",
-        title: "Closing Message",
-        content: "Terima kasih kak sudah booking di Serenity Spa. Ditunggu kedatangannya, semoga harinya menyenangkan.",
-      },
-    ],
+    data: nusadexReplyTemplates.map((template) => ({
+      businessId: business.id,
+      ...template,
+      isActive: true,
+    })),
   });
 
   await prisma.knowledgeBaseItem.createMany({
-    data: [
-      {
-        businessId: business.id,
-        title: "Alamat Outlet",
-        category: "address",
-        content: "Serenity Spa & Wellness, Jl. Melati No. 28 Makassar. Parkir mobil tersedia.",
-      },
-      {
-        businessId: business.id,
-        title: "Metode Pembayaran",
-        category: "payment",
-        content: "Transfer BCA 123456789 a.n. Serenity Spa, atau QRIS di kasir.",
-      },
-      {
-        businessId: business.id,
-        title: "Ketentuan Booking",
-        category: "booking",
-        content: "Booking dianjurkan minimal H-1. Slot private room wajib DP.",
-      },
-      {
-        businessId: business.id,
-        title: "Kebijakan Refund",
-        category: "refund",
-        content: "Pembatalan H-1 refund 50%. Hari-H tidak dapat refund tanpa persetujuan manajemen.",
-      },
-      {
-        businessId: business.id,
-        title: "Kebijakan Reschedule",
-        category: "reschedule",
-        content: "Reschedule gratis 1x jika diajukan minimal 6 jam sebelum jadwal.",
-      },
-      {
-        businessId: business.id,
-        title: "Promo Mingguan",
-        category: "promo",
-        content: "Promo weekday Senin-Kamis: diskon 10% untuk Aromatherapy Massage.",
-      },
-      {
-        businessId: business.id,
-        title: "FAQ Ibu Hamil",
-        category: "faq",
-        content: "Untuk ibu hamil, treatment wajib konsultasi admin dulu agar disesuaikan therapist.",
-      },
-    ],
+    data: nusadexKnowledgeBase.map((item) => ({
+      businessId: business.id,
+      ...item,
+      isActive: true,
+    })),
   });
 
   const [customerA, customerB, customerC, customerD, customerE] = await prisma.$transaction([
     prisma.customer.create({
       data: {
         businessId: business.id,
-        name: "Andi Saputra",
-        phone: "6281220001111",
+        name: "Rifki",
+        phone: "6281211110001",
         leadStatus: "hot",
-        tags: ["repeat"],
+        tags: ["website + crm"],
         lastMessageAt: new Date(),
       },
     }),
     prisma.customer.create({
       data: {
         businessId: business.id,
-        name: "Siti Rahma",
-        phone: "6281230002222",
+        name: "Maya",
+        phone: "6281211110002",
         leadStatus: "warm",
-        tags: ["new lead"],
+        tags: ["new lead", "need proposal"],
         lastMessageAt: new Date(Date.now() - 1000 * 60 * 15),
       },
     }),
     prisma.customer.create({
       data: {
         businessId: business.id,
-        name: "Budi Haryanto",
-        phone: "6281240003333",
+        name: "Budi",
+        phone: "6281211110003",
         leadStatus: "cold",
-        tags: ["price sensitive"],
+        tags: ["price sensitive", "marketplace only"],
         spamSuspected: true,
-        spamReason: "Lebih dari 10 pesan masuk dalam 60 detik.",
+        spamReason: "Mengirim pesan berulang sangat cepat.",
         lastMessageAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
       },
     }),
     prisma.customer.create({
       data: {
         businessId: business.id,
-        name: "Maya Wulan",
-        phone: "6281250004444",
+        name: "Nina",
+        phone: "6281211110004",
         leadStatus: "complaint",
-        tags: ["complaint"],
+        tags: ["complaint", "timeline issue"],
         lastMessageAt: new Date(Date.now() - 1000 * 60 * 30),
       },
     }),
     prisma.customer.create({
       data: {
         businessId: business.id,
-        name: "Tono Prasetyo",
-        phone: "6281260005555",
+        name: "Arif",
+        phone: "6281211110005",
         leadStatus: "deal",
-        tags: ["corporate"],
+        tags: ["corporate", "high value"],
         lastMessageAt: new Date(Date.now() - 1000 * 60 * 60 * 5),
       },
     }),
@@ -387,7 +529,7 @@ async function main() {
         businessId: business.id,
         customerId: customerA.id,
         status: "open",
-        summary: "Customer ingin booking Aromatherapy Massage untuk besok malam.",
+        summary: "Calon klien ingin website booking + admin panel untuk bisnis spa.",
         lastIntent: "order_inquiry",
         lastMessageAt: new Date(),
       },
@@ -397,7 +539,7 @@ async function main() {
         businessId: business.id,
         customerId: customerB.id,
         status: "open",
-        summary: "Customer menanyakan harga facial dan promo weekday.",
+        summary: "Calon klien meminta estimasi landing page untuk campaign ads bulan depan.",
         lastIntent: "price_question",
         lastMessageAt: new Date(Date.now() - 1000 * 60 * 10),
       },
@@ -407,7 +549,7 @@ async function main() {
         businessId: business.id,
         customerId: customerC.id,
         status: "open",
-        summary: "Customer minta diskon tambahan untuk Couple Spa Package.",
+        summary: "Calon klien fokus tanya harga tanpa memberi detail kebutuhan bisnis.",
         lastIntent: "price_question",
         lastMessageAt: new Date(Date.now() - 1000 * 60 * 60 * 6),
       },
@@ -417,7 +559,7 @@ async function main() {
         businessId: business.id,
         customerId: customerD.id,
         status: "open",
-        summary: "Customer komplain jadwal treatment bergeser 30 menit.",
+        summary: "Klien komplain progres presentasi proposal terlambat dari jadwal meeting.",
         lastIntent: "complaint",
         lastMessageAt: new Date(Date.now() - 1000 * 60 * 30),
       },
@@ -427,7 +569,7 @@ async function main() {
         businessId: business.id,
         customerId: customerE.id,
         status: "open",
-        summary: "Customer corporate meminta paket wellness untuk tim kantor.",
+        summary: "Klien corporate meminta paket transformasi digital end-to-end.",
         lastIntent: "general_question",
         lastMessageAt: new Date(Date.now() - 1000 * 60 * 60 * 4),
       },
@@ -441,16 +583,16 @@ async function main() {
         customerId: customerA.id,
         conversationId: conversations[0].id,
         direction: "incoming",
-        message: "Halo kak, aromatherapy massage untuk besok jam 7 malam masih ada?",
+        message: "Halo kak, saya butuh website booking + admin panel untuk Serenity Spa. Bisa dibantu?",
         aiProcessed: true,
-        fonnteInboxId: "inbox-andi-1",
+        fonnteInboxId: "inbox-rifki-1",
       },
       {
         businessId: business.id,
         customerId: customerA.id,
         conversationId: conversations[0].id,
         direction: "outgoing",
-        message: "Halo kak, slot jam 7 malam masih ada. Mau aku bantu lock slotnya?",
+        message: "Siap kak, boleh share kendala utama sekarang dan fitur yang paling dibutuhkan dulu?",
         aiProcessed: true,
       },
       {
@@ -458,16 +600,16 @@ async function main() {
         customerId: customerB.id,
         conversationId: conversations[1].id,
         direction: "incoming",
-        message: "Facial brightening berapa ya? ada promo weekday?",
+        message: "Mau bikin landing page buat campaign properti, estimasinya mulai dari berapa?",
         aiProcessed: true,
-        fonnteInboxId: "inbox-siti-1",
+        fonnteInboxId: "inbox-maya-1",
       },
       {
         businessId: business.id,
         customerId: customerC.id,
         conversationId: conversations[2].id,
         direction: "incoming",
-        message: "Couple package bisa kurang lagi nggak harganya kalau weekend?",
+        message: "Harga paling murah berapa? saya banding-bandingin dulu.",
         aiProcessed: true,
         fonnteInboxId: "inbox-budi-1",
       },
@@ -476,18 +618,18 @@ async function main() {
         customerId: customerD.id,
         conversationId: conversations[3].id,
         direction: "incoming",
-        message: "Jadwal treatment saya molor tadi, mohon penjelasannya ya.",
+        message: "Mohon maaf, kemarin janji kirim proposal jam 3 tapi belum masuk ya.",
         aiProcessed: true,
-        fonnteInboxId: "inbox-maya-1",
+        fonnteInboxId: "inbox-nina-1",
       },
       {
         businessId: business.id,
         customerId: customerE.id,
         conversationId: conversations[4].id,
         direction: "incoming",
-        message: "Kami butuh paket wellness untuk 25 karyawan, bisa bantu proposal?",
+        message: "Kami butuh website corporate + CRM + chatbot AI untuk tim sales. Bisa bantu proposal?",
         aiProcessed: true,
-        fonnteInboxId: "inbox-tono-1",
+        fonnteInboxId: "inbox-arif-1",
       },
       {
         businessId: business.id,
@@ -495,7 +637,7 @@ async function main() {
         conversationId: conversations[4].id,
         direction: "outgoing",
         message:
-          "Siap Pak Tono, kami siapkan opsi paket corporate. Boleh info target tanggal kegiatan?",
+          "Siap Pak Arif, kami bantu susun opsi scope dan estimasi. Boleh info target timeline implementasinya?",
         aiProcessed: true,
       },
     ],
@@ -537,11 +679,11 @@ async function main() {
           {
             product: services[0].name,
             quantity: 1,
-            estimatedPrice: 299000,
+            estimatedPrice: 6500000,
           },
         ],
-        totalEstimate: 299000,
-        notes: "Customer minta slot besok jam 19:00.",
+        totalEstimate: 6500000,
+        notes: "Calon klien ingin website booking dan request go-live bulan depan.",
       },
       {
         businessId: business.id,
@@ -551,15 +693,19 @@ async function main() {
         items: [
           {
             product: services[0].name,
-            quantity: 10,
+            quantity: 1,
           },
           {
             product: services[2].name,
-            quantity: 15,
+            quantity: 1,
+          },
+          {
+            product: services[3].name,
+            quantity: 1,
           },
         ],
-        totalEstimate: 8500000,
-        notes: "Corporate wellness package Q2.",
+        totalEstimate: 36500000,
+        notes: "Corporate transformation package untuk implementasi Q3.",
       },
       {
         businessId: business.id,
@@ -568,12 +714,12 @@ async function main() {
         status: "waiting_payment",
         items: [
           {
-            product: services[2].name,
+            product: services[1].name,
             quantity: 1,
           },
         ],
-        totalEstimate: 379000,
-        notes: "Menunggu transfer DP booking facial.",
+        totalEstimate: 3900000,
+        notes: "Menunggu transfer DP untuk kickoff landing page campaign.",
       },
     ],
   });
@@ -584,7 +730,7 @@ async function main() {
         businessId: business.id,
         customerId: customerB.id,
         conversationId: conversations[1].id,
-        message: "Follow-up promo weekday facial dan konfirmasi tanggal booking.",
+        message: "Follow-up kebutuhan campaign ads dan finalisasi CTA landing page.",
         scheduledAt: new Date(Date.now() + 1000 * 60 * 60 * 20),
         status: "pending",
       },
@@ -592,7 +738,7 @@ async function main() {
         businessId: business.id,
         customerId: customerC.id,
         conversationId: conversations[2].id,
-        message: "Follow-up minat couple package setelah opsi promo dijelaskan.",
+        message: "Follow-up untuk menggali masalah bisnis sebelum kirim estimasi.",
         scheduledAt: new Date(Date.now() + 1000 * 60 * 60 * 30),
         status: "pending",
       },
@@ -600,7 +746,7 @@ async function main() {
         businessId: business.id,
         customerId: customerD.id,
         conversationId: conversations[3].id,
-        message: "Kirim update penanganan komplain dan opsi kompensasi.",
+        message: "Kirim update klarifikasi keterlambatan dan jadwal revisi proposal.",
         scheduledAt: new Date(Date.now() + 1000 * 60 * 60 * 2),
         status: "pending",
       },
@@ -608,7 +754,7 @@ async function main() {
         businessId: business.id,
         customerId: customerE.id,
         conversationId: conversations[4].id,
-        message: "Tanyakan approval final paket corporate wellness.",
+        message: "Tanyakan approval final scope paket growth stack.",
         scheduledAt: new Date(Date.now() + 1000 * 60 * 60 * 36),
         status: "pending",
       },
@@ -621,14 +767,14 @@ async function main() {
         businessId: business.id,
         customerId: customerA.id,
         conversationId: conversations[0].id,
-        message: "Halo kak, slot treatment masih tersedia.",
+        message: "Halo kak, kami siap lanjutkan discovery untuk website + sistemnya.",
         status: "sent",
       },
       {
         businessId: business.id,
         customerId: customerC.id,
         conversationId: conversations[2].id,
-        message: "Follow up negosiasi couple package.",
+        message: "Follow up kebutuhan detail sebelum estimasi harga.",
         status: "blocked",
         blockedReason: "This customer may be spamming. Reply manually.",
       },
@@ -642,13 +788,13 @@ async function main() {
         sender: customerA.phone,
         name: customerA.name,
         message: "Contoh payload webhook dari Fonnte",
-        inboxid: "seed-inbox-001",
+        inboxid: "seed-nusadex-inbox-001",
       },
     },
   });
 
   console.log("Seed selesai.");
-  console.log(`Login demo: ${business.email} / ${process.env.SEED_ADMIN_PASSWORD ?? DEFAULT_LOGIN_PASSWORD}`);
+  console.log(`Login demo: ${business.email} / ${seedPassword}`);
 }
 
 main()

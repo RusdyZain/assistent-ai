@@ -118,6 +118,9 @@ function Select({
   const triggerChildren = React.Children.toArray(triggerNode?.props.children);
   const valueNode = triggerChildren.find((child) => isComponent(child, SelectValue)) as React.ReactElement<SelectValueProps> | undefined;
   const extraTriggerChildren = triggerChildren.filter((child) => !isComponent(child, SelectValue));
+  const hasAriaLabel = Boolean(props["aria-label"] || props["aria-labelledby"]);
+  const fallbackAriaLabel =
+    valueNode?.props.placeholder?.trim() || name?.trim() || "Select option";
 
   return (
     <HeroSelect.Root
@@ -130,6 +133,7 @@ function Select({
       placeholder={valueNode?.props.placeholder}
       selectedKey={value == null ? null : value}
       variant="primary"
+      {...(hasAriaLabel ? {} : { "aria-label": fallbackAriaLabel })}
       {...(props as React.ComponentProps<typeof HeroSelect.Root>)}
     >
       <HeroSelect.Trigger className={cn("w-full", triggerNode?.props.className)}>
