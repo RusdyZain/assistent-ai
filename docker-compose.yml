@@ -1,0 +1,13 @@
+services:
+  waha:
+    image: devlikeapro/waha
+    container_name: waha
+    ports:
+      - "3000:3000"
+    environment:
+      - TZ=Asia/Makassar
+      - WHATSAPP_API_PORT=3000
+      - WHATSAPP_API_HOSTNAME=0.0.0.0
+    volumes:
+      - ./waha-data:/app/.sessions
+    restart: unless-stopped

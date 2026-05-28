@@ -17,7 +17,11 @@ interface SettingsData {
   ownerName: string;
   phone: string;
   email: string;
-  fonnteToken: string | null;
+  whatsappProvider: string;
+  wahaBaseUrl: string;
+  wahaSession: string;
+  wahaApiKeyConfigured: boolean;
+  wahaWebhookSecretConfigured: boolean;
   inboundOnlyMode: boolean;
   replyCooldownSeconds: number;
   perCustomerDailyLimit: number;
@@ -29,14 +33,15 @@ interface SettingsData {
   whatsappNumber: string;
 }
 
-interface FonnteTokenCheckData {
-  device: string | null;
-  deviceStatus: string | null;
-  name: string | null;
-  quota: unknown;
-  expired: unknown;
-  messages: unknown;
-  package: unknown;
+interface WahaSessionCheckData {
+  provider: "waha";
+  session: string;
+  status: string | null;
+  engine: string | null;
+  me: {
+    id: string | null;
+    pushName: string | null;
+  };
 }
 
 export function SettingsPageClient() {
@@ -44,21 +49,21 @@ export function SettingsPageClient() {
   const [name, setName] = useState("");
   const [ownerName, setOwnerName] = useState("");
   const [phone, setPhone] = useState("");
-  const [fonnteToken, setFonnteToken] = useState("");
   const [inboundOnlyMode, setInboundOnlyMode] = useState(true);
   const [replyCooldownSeconds, setReplyCooldownSeconds] = useState("3");
   const [perCustomerDailyLimit, setPerCustomerDailyLimit] = useState("20");
   const [dailyMessageLimit, setDailyMessageLimit] = useState("500");
+  const [sessionToCheck, setSessionToCheck] = useState("default");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [checkingToken, setCheckingToken] = useState(false);
-  const [tokenCheckResult, setTokenCheckResult] = useState<string | null>(null);
-  const [tokenCheckError, setTokenCheckError] = useState<string | null>(null);
+  const [checkingSession, setCheckingSession] = useState(false);
+  const [sessionCheckResult, setSessionCheckResult] = useState<string | null>(null);
+  const [sessionCheckError, setSessionCheckError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   const [webhookUrl, setWebhookUrl] = useState(
-    `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/webhooks/fonnte`,
+    `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/webhooks/waha`,
   );
 
   const loadSettings = useCallback(async () => {
@@ -78,11 +83,11 @@ export function SettingsPageClient() {
       setName(settings.name);
       setOwnerName(settings.ownerName);
       setPhone(settings.phone);
-      setFonnteToken(settings.fonnteToken ?? "");
       setInboundOnlyMode(settings.inboundOnlyMode);
       setReplyCooldownSeconds(String(settings.replyCooldownSeconds));
       setPerCustomerDailyLimit(String(settings.perCustomerDailyLimit));
       setDailyMessageLimit(String(settings.dailyMessageLimit));
+      setSessionToCheck(settings.wahaSession || "default");
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Gagal memuat settings");
     } finally {
@@ -95,7 +100,7 @@ export function SettingsPageClient() {
   }, [loadSettings]);
 
   useEffect(() => {
-    setWebhookUrl(`${window.location.origin}/api/webhooks/fonnte`);
+    setWebhookUrl(`${window.location.origin}/api/webhooks/waha`);
   }, []);
 
   const handleSubmit = async (event: FormEvent) => {
@@ -113,7 +118,6 @@ export function SettingsPageClient() {
           name,
           ownerName,
           phone,
-          fonnteToken,
           inboundOnlyMode,
           replyCooldownSeconds: Number(replyCooldownSeconds),
           perCustomerDailyLimit: Number(perCustomerDailyLimit),
@@ -135,51 +139,41 @@ export function SettingsPageClient() {
     }
   };
 
-  const handleCheckFonnteToken = async () => {
-    setCheckingToken(true);
-    setTokenCheckResult(null);
-    setTokenCheckError(null);
+  const handleCheckWahaSession = async () => {
+    setCheckingSession(true);
+    setSessionCheckResult(null);
+    setSessionCheckError(null);
 
     try {
-      const response = await fetch("/api/settings/fonnte-token-check", {
+      const response = await fetch("/api/settings/waha-session-check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token: fonnteToken,
+          session: sessionToCheck,
         }),
       });
 
       const result = (await response.json()) as {
         ok?: boolean;
-        data?: FonnteTokenCheckData;
+        data?: WahaSessionCheckData;
         error?: string;
-        payload?: {
-          reason?: unknown;
-        };
       };
 
       if (!response.ok || !result.ok) {
-        const payloadReason =
-          typeof result.payload?.reason === "string" ? result.payload.reason : null;
-        throw new Error(
-          payloadReason ??
-            result.error ??
-            `Gagal cek token Fonnte (HTTP ${response.status})`,
-        );
+        throw new Error(result.error ?? `Gagal cek session WAHA (HTTP ${response.status})`);
       }
 
-      const device = result.data?.device ?? "-";
-      const deviceStatus = result.data?.deviceStatus ?? "-";
-      const deviceName = result.data?.name ?? "-";
-      setTokenCheckResult(
-        `Device: ${device} (${deviceName}), status: ${deviceStatus}.`,
-      );
+      const session = result.data?.session ?? "-";
+      const status = result.data?.status ?? "-";
+      const engine = result.data?.engine ?? "-";
+      const meId = result.data?.me?.id ?? "-";
+      setSessionCheckResult(`Session: ${session}, status: ${status}, engine: ${engine}, me: ${meId}`);
     } catch (checkError) {
-      setTokenCheckError(
-        checkError instanceof Error ? checkError.message : "Gagal cek token Fonnte.",
+      setSessionCheckError(
+        checkError instanceof Error ? checkError.message : "Gagal cek session WAHA.",
       );
     } finally {
-      setCheckingToken(false);
+      setCheckingSession(false);
     }
   };
 
@@ -187,7 +181,7 @@ export function SettingsPageClient() {
     <div>
       <DashboardTopbar
         title="Settings"
-        description="Konfigurasi profil bisnis, token Fonnte, endpoint webhook, dan safe messaging."
+        description="Konfigurasi profil bisnis, provider WAHA, endpoint webhook, dan safe messaging."
       />
 
       {error ? (
@@ -253,40 +247,6 @@ export function SettingsPageClient() {
                   <Label>Email Login</Label>
                   <Input value={data.email} disabled />
                 </div>
-                <div className="space-y-2">
-                  <Label>Fonnte Token</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="password"
-                      value={fonnteToken}
-                      onChange={(event) => setFonnteToken(event.target.value)}
-                      placeholder="Isi token Fonnte"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleCheckFonnteToken}
-                      disabled={checkingToken || saving}
-                    >
-                      {checkingToken ? "Mengecek..." : "Cek Token"}
-                    </Button>
-                  </div>
-                  {tokenCheckResult ? (
-                    <p className="text-xs text-zinc-600">{tokenCheckResult}</p>
-                  ) : null}
-                  {tokenCheckError ? (
-                    <Alert variant="destructive" className="mt-2">
-                      <AlertTitle>Token Tidak Valid</AlertTitle>
-                      <AlertDescription>{tokenCheckError}</AlertDescription>
-                    </Alert>
-                  ) : null}
-                  {tokenCheckResult ? (
-                    <Alert className="mt-2">
-                      <AlertTitle>Token Valid</AlertTitle>
-                      <AlertDescription>{tokenCheckResult}</AlertDescription>
-                    </Alert>
-                  ) : null}
-                </div>
 
                 <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3">
                   <p className="mb-3 text-sm font-medium text-zinc-900">Safe Messaging Settings</p>
@@ -345,13 +305,71 @@ export function SettingsPageClient() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Webhook & Safety Info</CardTitle>
+            <CardTitle>WAHA Connection</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-700">
+              <p>
+                Provider: <span className="font-semibold">{data?.whatsappProvider ?? "waha"}</span>
+              </p>
+              <p>
+                WAHA Base URL: <span className="font-semibold">{data?.wahaBaseUrl ?? "-"}</span>
+              </p>
+              <p>
+                Default Session: <span className="font-semibold">{data?.wahaSession ?? "default"}</span>
+              </p>
+              <p>
+                API Key:{" "}
+                <span className="font-semibold">
+                  {data?.wahaApiKeyConfigured ? "Configured" : "Not configured"}
+                </span>
+              </p>
+              <p>
+                Webhook Secret:{" "}
+                <span className="font-semibold">
+                  {data?.wahaWebhookSecretConfigured ? "Configured" : "Not configured"}
+                </span>
+              </p>
+            </div>
+
             <div>
               <p className="text-sm text-zinc-600">Webhook URL</p>
               <code className="mt-1 block rounded-md bg-zinc-100 p-2 text-xs text-zinc-800">{webhookUrl}</code>
             </div>
+
+            <div className="space-y-2">
+              <Label>Session Name untuk Cek Status</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={sessionToCheck}
+                  onChange={(event) => setSessionToCheck(event.target.value)}
+                  placeholder="default"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCheckWahaSession}
+                  disabled={checkingSession || saving}
+                >
+                  {checkingSession ? "Mengecek..." : "Cek Session"}
+                </Button>
+              </div>
+            </div>
+
+            {sessionCheckError ? (
+              <Alert variant="destructive" className="mt-2">
+                <AlertTitle>Session Tidak Valid</AlertTitle>
+                <AlertDescription>{sessionCheckError}</AlertDescription>
+              </Alert>
+            ) : null}
+
+            {sessionCheckResult ? (
+              <Alert className="mt-2">
+                <AlertTitle>Session Terdeteksi</AlertTitle>
+                <AlertDescription>{sessionCheckResult}</AlertDescription>
+              </Alert>
+            ) : null}
+
             <div className="rounded-md border border-zinc-200 p-3 text-sm text-zinc-700">
               <p>
                 Outgoing hari ini: <span className="font-semibold">{data?.businessOutgoingToday ?? 0}</span> /
@@ -360,17 +378,9 @@ export function SettingsPageClient() {
             </div>
 
             <Alert variant="warning">
-              <AlertTitle>Peringatan</AlertTitle>
+              <AlertTitle>Security Notice</AlertTitle>
               <AlertDescription>
-                Fonnte is unofficial WhatsApp API. Use a secondary number and avoid spam/broadcast without consent.
-              </AlertDescription>
-            </Alert>
-
-            <Alert variant="warning">
-              <AlertTitle>WhatsApp Safety Mitigation</AlertTitle>
-              <AlertDescription>
-                To reduce WhatsApp ban risk, this app is designed for inbound replies only. Avoid blasting messages to
-                numbers that never contacted your business.
+                Jangan expose WAHA ke internet tanpa API key, reverse proxy, dan firewall yang ketat.
               </AlertDescription>
             </Alert>
           </CardContent>

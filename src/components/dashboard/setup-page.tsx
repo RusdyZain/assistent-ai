@@ -57,8 +57,9 @@ interface SetupData {
     maxFollowUpCount: number;
     markLostAfterDays: number;
   };
-  fonnteConnection: {
-    fonnteToken: string;
+  whatsappConnection: {
+    provider: string;
+    session: string;
     whatsappNumber: string;
     webhookUrl: string;
   };
@@ -174,13 +175,17 @@ export function SetupPageClient() {
     await saveSection("follow_up_rules", data.followUpRules, "Aturan follow-up berhasil disimpan.");
   };
 
-  const handleSaveFonnte = async (event: FormEvent) => {
+  const handleSaveWhatsApp = async (event: FormEvent) => {
     event.preventDefault();
     if (!data) return;
-    await saveSection("fonnte_connection", data.fonnteConnection, "Koneksi Fonnte berhasil disimpan.");
+    await saveSection(
+      "whatsapp_connection",
+      data.whatsappConnection,
+      "Koneksi WhatsApp berhasil disimpan.",
+    );
   };
 
-  const handleTestFonnte = async () => {
+  const handleTestWhatsApp = async () => {
     if (!testTarget.trim()) {
       setError("Nomor target test wajib diisi.");
       return;
@@ -191,7 +196,7 @@ export function SetupPageClient() {
     setSuccess(null);
 
     try {
-      const response = await fetch("/api/setup/fonnte-test", {
+      const response = await fetch("/api/setup/whatsapp-test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -944,40 +949,30 @@ export function SetupPageClient() {
       {currentStep === 7 ? (
         <Card>
           <CardHeader>
-            <CardTitle>7. Koneksi Fonnte</CardTitle>
+            <CardTitle>7. Koneksi WhatsApp (WAHA)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <form className="space-y-3" onSubmit={handleSaveFonnte}>
-              <div className="space-y-2">
-                <Label>Fonnte Token</Label>
-                <Input
-                  type="password"
-                  required
-                  value={data.fonnteConnection.fonnteToken}
-                  onChange={(event) =>
-                    setData((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            fonnteConnection: { ...prev.fonnteConnection, fonnteToken: event.target.value },
-                          }
-                        : prev,
-                    )
-                  }
-                />
+            <form className="space-y-3" onSubmit={handleSaveWhatsApp}>
+              <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 text-sm text-zinc-700">
+                <p>
+                  Provider: <span className="font-semibold">{data.whatsappConnection.provider || "waha"}</span>
+                </p>
+                <p>
+                  Session: <span className="font-semibold">{data.whatsappConnection.session || "default"}</span>
+                </p>
               </div>
               <div className="space-y-2">
                 <Label>Nomor WhatsApp</Label>
                 <Input
                   required
-                  value={data.fonnteConnection.whatsappNumber}
+                  value={data.whatsappConnection.whatsappNumber}
                   onChange={(event) =>
                     setData((prev) =>
                       prev
                         ? {
                             ...prev,
-                            fonnteConnection: {
-                              ...prev.fonnteConnection,
+                            whatsappConnection: {
+                              ...prev.whatsappConnection,
                               whatsappNumber: event.target.value,
                             },
                           }
@@ -988,7 +983,7 @@ export function SetupPageClient() {
               </div>
               <div className="space-y-2">
                 <Label>Webhook URL</Label>
-                <Input value={data.fonnteConnection.webhookUrl} disabled />
+                <Input value={data.whatsappConnection.webhookUrl} disabled />
               </div>
 
               <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3">
@@ -999,22 +994,21 @@ export function SetupPageClient() {
                     value={testTarget}
                     onChange={(event) => setTestTarget(event.target.value)}
                   />
-                  <Button type="button" variant="outline" onClick={handleTestFonnte} disabled={testing}>
+                  <Button type="button" variant="outline" onClick={handleTestWhatsApp} disabled={testing}>
                     {testing ? "Testing..." : "Kirim Test"}
                   </Button>
                 </div>
               </div>
 
               <Button type="submit" disabled={saving}>
-                {saving ? "Menyimpan..." : "Simpan Koneksi Fonnte"}
+                {saving ? "Menyimpan..." : "Simpan Koneksi WhatsApp"}
               </Button>
             </form>
 
             <Alert variant="warning">
               <AlertTitle>Peringatan</AlertTitle>
               <AlertDescription>
-                Fonnte is unofficial. Use a secondary number. Avoid spam, broadcast, and sending first
-                messages to numbers that never contacted you.
+                Jangan expose WAHA ke internet tanpa API key, reverse proxy, dan firewall yang ketat.
               </AlertDescription>
             </Alert>
 

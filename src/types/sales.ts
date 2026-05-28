@@ -1,3 +1,5 @@
+import type { SendTextResult } from "@/lib/whatsapp/types";
+
 export const INTENT_VALUES = [
   "order_inquiry",
   "price_question",
@@ -48,20 +50,6 @@ export interface AIAnalysisResult {
   nextAction: NextActionType;
 }
 
-export interface FonnteSendParams {
-  token: string;
-  target: string;
-  message: string;
-  inboxId?: string;
-}
-
-export interface FonnteSendResult {
-  ok: boolean;
-  status: number;
-  payload: unknown;
-  error?: string;
-}
-
 export interface DraftOrderItem {
   product: string;
   quantity: number;
@@ -101,7 +89,7 @@ export interface SafeSendResult {
   blocked?: boolean;
   code?: SendGuardCode;
   reason?: string;
-  sendResult?: FonnteSendResult;
+  sendResult?: SendTextResult;
   cooldownAppliedSeconds?: number;
   customerOutgoingToday?: number;
   businessOutgoingToday?: number;

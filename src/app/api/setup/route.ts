@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireBusiness, unauthorizedResponse } from "@/lib/business";
-import { normalizeFonnteToken } from "@/lib/fonnte";
 import { prisma } from "@/lib/prisma";
 import { evaluateSetupCompletion } from "@/lib/setup";
 
@@ -44,8 +43,7 @@ const followUpRulesSchema = z.object({
   markLostAfterDays: z.coerce.number().int().min(1),
 });
 
-const fonnteSchema = z.object({
-  fonnteToken: z.string().min(1),
+const whatsappConnectionSchema = z.object({
   whatsappNumber: z.string().min(6),
 });
 
@@ -63,8 +61,8 @@ const patchSchema = z.discriminatedUnion("section", [
     payload: followUpRulesSchema,
   }),
   z.object({
-    section: z.literal("fonnte_connection"),
-    payload: fonnteSchema,
+    section: z.literal("whatsapp_connection"),
+    payload: whatsappConnectionSchema,
   }),
 ]);
 
@@ -107,7 +105,6 @@ async function getSetupData(businessId: string) {
         waitingPaymentFollowUpHours: true,
         maxFollowUpCount: true,
         markLostAfterDays: true,
-        fonnteToken: true,
         setupCompleted: true,
         setupStep: true,
       },
@@ -178,7 +175,8 @@ export async function GET(request: Request) {
       });
     }
 
-    const webhookUrl = new URL("/api/webhooks/fonnte", request.url).toString();
+    const webhookUrl = new URL("/api/webhooks/waha", request.url).toString();
+    const defaultSession = process.env.WAHA_SESSION?.trim() || "default";
 
     return NextResponse.json({
       data: {
@@ -225,8 +223,9 @@ export async function GET(request: Request) {
           maxFollowUpCount: currentBusiness.maxFollowUpCount,
           markLostAfterDays: currentBusiness.markLostAfterDays,
         },
-        fonnteConnection: {
-          fonnteToken: currentBusiness.fonnteToken ?? "",
+        whatsappConnection: {
+          provider: "waha",
+          session: defaultSession,
           whatsappNumber: currentBusiness.whatsappNumber ?? currentBusiness.phone,
           webhookUrl,
         },
@@ -301,11 +300,10 @@ export async function PATCH(request: Request) {
       });
     }
 
-    if (parsed.data.section === "fonnte_connection") {
+    if (parsed.data.section === "whatsapp_connection") {
       await prisma.business.update({
         where: { id: business.id },
         data: {
-          fonnteToken: normalizeFonnteToken(parsed.data.payload.fonnteToken),
           whatsappNumber: parsed.data.payload.whatsappNumber,
           phone: parsed.data.payload.whatsappNumber,
         },

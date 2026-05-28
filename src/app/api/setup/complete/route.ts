@@ -46,7 +46,6 @@ export async function POST() {
           waitingPaymentFollowUpHours: true,
           maxFollowUpCount: true,
           markLostAfterDays: true,
-          fonnteToken: true,
         },
       }),
       prisma.product.count({ where: { businessId: business.id, isActive: true } }),

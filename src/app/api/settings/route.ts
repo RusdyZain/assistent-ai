@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireBusiness, unauthorizedResponse } from "@/lib/business";
-import { normalizeFonnteToken } from "@/lib/fonnte";
 import { getBusinessDailyOutgoingCount } from "@/lib/message-guard";
 import { prisma } from "@/lib/prisma";
 
@@ -10,7 +9,6 @@ const schema = z.object({
   name: z.string().min(1).optional(),
   ownerName: z.string().min(1).optional(),
   phone: z.string().min(6).optional(),
-  fonnteToken: z.string().optional().nullable(),
   inboundOnlyMode: z.boolean().optional(),
   replyCooldownSeconds: z.coerce.number().int().min(1).max(60).optional(),
   perCustomerDailyLimit: z.coerce.number().int().min(1).max(500).optional(),
@@ -30,7 +28,11 @@ export async function GET() {
         ownerName: business.ownerName,
         phone: business.phone,
         email: business.email,
-        fonnteToken: business.fonnteToken,
+        whatsappProvider: process.env.WHATSAPP_PROVIDER ?? "waha",
+        wahaBaseUrl: process.env.WAHA_BASE_URL ?? "http://localhost:3000",
+        wahaSession: process.env.WAHA_SESSION ?? "default",
+        wahaApiKeyConfigured: Boolean(process.env.WAHA_API_KEY?.trim()),
+        wahaWebhookSecretConfigured: Boolean(process.env.WAHA_WEBHOOK_SECRET?.trim()),
         inboundOnlyMode: business.inboundOnlyMode,
         replyCooldownSeconds: business.replyCooldownSeconds,
         perCustomerDailyLimit: business.perCustomerDailyLimit,
@@ -61,18 +63,12 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "Payload settings tidak valid" }, { status: 400 });
     }
 
-    const normalizedFonnteToken =
-      parsed.data.fonnteToken === undefined
-        ? undefined
-        : normalizeFonnteToken(parsed.data.fonnteToken);
-
     const updated = await prisma.business.update({
       where: {
         id: business.id,
       },
       data: {
         ...parsed.data,
-        fonnteToken: normalizedFonnteToken,
       },
     });
 

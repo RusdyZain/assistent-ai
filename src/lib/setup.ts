@@ -7,7 +7,7 @@ export const SETUP_STEPS = [
   { step: 4, label: "Template Balasan" },
   { step: 5, label: "Knowledge Base" },
   { step: 6, label: "Aturan Follow-up" },
-  { step: 7, label: "Koneksi Fonnte" },
+  { step: 7, label: "Koneksi WhatsApp (WAHA)" },
 ] as const;
 
 export const BUSINESS_CATEGORY_OPTIONS = [
@@ -114,7 +114,6 @@ type SetupCompletionInput = {
     waitingPaymentFollowUpHours: number;
     maxFollowUpCount: number;
     markLostAfterDays: number;
-    fonnteToken: string | null;
   };
   productCount: number;
   activeTemplateTypes: ReplyTemplateType[];
@@ -169,7 +168,7 @@ export function evaluateSetupCompletion(input: SetupCompletionInput) {
     templatesComplete,
     input.knowledgeCount > 0,
     followUpRulesComplete,
-    hasText(input.business.fonnteToken) && hasText(input.business.whatsappNumber),
+    hasText(input.business.whatsappNumber),
   ];
 
   const setupCompleted = steps.every(Boolean);

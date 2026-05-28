@@ -25,7 +25,6 @@ export async function POST(request: Request) {
           ok: false,
           error: result.error,
           payload: result.payload,
-          deprecated: true,
         },
         { status: result.status || 500 },
       );
@@ -34,7 +33,6 @@ export async function POST(request: Request) {
     return NextResponse.json({
       ok: true,
       data: result.data,
-      deprecated: true,
     });
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") {

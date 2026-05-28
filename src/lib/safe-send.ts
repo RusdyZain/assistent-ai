@@ -1,47 +1,19 @@
 import { startOfDay } from "date-fns";
 import { Prisma } from "@prisma/client";
 
-import { normalizeFonnteToken, sendWhatsAppMessage } from "@/lib/fonnte";
 import {
   canSendMessage,
   getBusinessDailyOutgoingCount,
   resetCustomerOutgoingCounterIfNeeded,
 } from "@/lib/message-guard";
 import { prisma } from "@/lib/prisma";
-import { normalizePhone } from "@/lib/utils";
+import { getWhatsAppProvider } from "@/lib/whatsapp";
 import { SafeSendParams, SafeSendResult } from "@/types/sales";
 
 const sendQueueByBusiness = new Map<string, Promise<void>>();
 
 function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function resolveEnvFonnteToken() {
-  const envToken = process.env.FONNTE_TOKEN ?? process.env.SEED_FONNTE_TOKEN;
-  return normalizeFonnteToken(envToken);
-}
-
-function resolveFonnteTokens(dbToken: string | null | undefined) {
-  const normalizedDbToken = normalizeFonnteToken(dbToken);
-  const envToken = resolveEnvFonnteToken();
-
-  if (normalizedDbToken) {
-    return {
-      primaryToken: normalizedDbToken,
-      fallbackToken: envToken && envToken !== normalizedDbToken ? envToken : null,
-    };
-  }
-
-  return {
-    primaryToken: envToken,
-    fallbackToken: null,
-  };
-}
-
-function isInvalidTokenFailure(reason?: string) {
-  if (!reason) return false;
-  return reason.toLowerCase().includes("invalid token");
 }
 
 async function withBusinessQueue<T>(businessId: string, task: () => Promise<T>): Promise<T> {
@@ -121,24 +93,6 @@ export async function safeSendWhatsAppMessage({
       },
     });
 
-    const { primaryToken, fallbackToken } = resolveFonnteTokens(business.fonnteToken);
-
-    if (!primaryToken) {
-      await prisma.messageSendLog.update({
-        where: { id: sendLog.id },
-        data: {
-          status: "blocked",
-          blockedReason: "Fonnte token belum diatur.",
-        },
-      });
-
-      return {
-        ok: false,
-        blocked: true,
-        reason: "Fonnte token belum diatur.",
-      };
-    }
-
     let cooldownAppliedSeconds = 0;
     let guard = await canSendMessage({ businessId, customerId, includeCooldown: true });
 
@@ -195,44 +149,25 @@ export async function safeSendWhatsAppMessage({
       };
     }
 
-    let sendResult = await sendWhatsAppMessage({
-      token: primaryToken,
-      target: normalizePhone(target),
-      message,
-      inboxId,
+    const provider = getWhatsAppProvider();
+    const sendResult = await provider.sendText({
+      target,
+      text: message,
     });
-
-    if (!sendResult.ok && fallbackToken && isInvalidTokenFailure(sendResult.error)) {
-      const fallbackSendResult = await sendWhatsAppMessage({
-        token: fallbackToken,
-        target: normalizePhone(target),
-        message,
-        inboxId,
-      });
-
-      sendResult = fallbackSendResult;
-
-      if (fallbackSendResult.ok && normalizeFonnteToken(business.fonnteToken) !== fallbackToken) {
-        await prisma.business.update({
-          where: { id: businessId },
-          data: { fonnteToken: fallbackToken },
-        });
-      }
-    }
 
     if (!sendResult.ok) {
       await prisma.messageSendLog.update({
         where: { id: sendLog.id },
         data: {
           status: "failed",
-          blockedReason: sendResult.error ?? "Fonnte mengembalikan error",
+          blockedReason: sendResult.error ?? "Provider WhatsApp mengembalikan error",
           fonnteResponse: sendResult.payload as Prisma.InputJsonValue,
         },
       });
 
       return {
         ok: false,
-        reason: sendResult.error ?? "Fonnte gagal mengirim pesan",
+        reason: sendResult.error ?? "Gagal mengirim pesan WhatsApp",
         sendResult,
         cooldownAppliedSeconds,
       };
@@ -262,7 +197,7 @@ export async function safeSendWhatsAppMessage({
           direction: "outgoing",
           message,
           rawPayload: sendResult.payload as Prisma.InputJsonValue,
-          fonnteInboxId: inboxId,
+          fonnteInboxId: inboxId ?? sendResult.messageId ?? null,
           aiProcessed: true,
         },
       });
